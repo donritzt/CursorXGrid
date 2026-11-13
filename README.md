@@ -50,3 +50,56 @@ Supabase biedt een gratis pakket met gebruikslimieten en voorwaarden die kunnen 
    ```
 
 4. Herstart de server met `scripts\start-trendstype.bat`. In het servervenster hoort te staan dat scores in Supabase worden opgeslagen.
+## Delen via Cloudflare Tunnel
+
+### Tijdelijke link (Quick Tunnel)
+
+Start TrendsType met `scripts/start-trendstype.bat`. Dubbelklik daarna op `scripts/start-trendstype-quick-tunnel.bat`. Het script controleert eerst of TrendsType bereikbaar is en start dan de tunnel. De deelbare URL verschijnt in het tunnelvenster.
+
+Je kunt de tunnel ook handmatig in een tweede PowerShell-venster starten:
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\cloudflared\cloudflared.exe" tunnel --url http://127.0.0.1:3000 --no-autoupdate
+```
+
+De Quick Tunnel-link is tijdelijk en kan bij een nieuwe start veranderen. De link werkt alleen zolang zowel de TrendsType-server als het tunnelvenster actief zijn. Druk op `Ctrl+C` in het tunnelvenster om de tunnel te stoppen. Iedereen met de link kan de app bereiken.
+
+### Vaste URL met een eigen domein
+
+Voor een vaste URL, bijvoorbeeld `type.jouwdomein.nl`, heb je een eigen domein nodig dat aan Cloudflare is toegevoegd en daar actief is. Een Cloudflare-account zonder domein is niet genoeg. De tunnel en DNS-route stel je eenmalig in; daarna kun je de tunnel steeds starten en stoppen terwijl de URL hetzelfde blijft.
+
+1. Voeg je domein toe aan Cloudflare. Als het domein ergens anders is geregistreerd, volg dan Cloudflares stappen om de nameservers naar Cloudflare te laten verwijzen.
+2. Meld `cloudflared` eenmalig aan bij Cloudflare. Dit opent een browservenster:
+
+   ```powershell
+   $cloudflared = "$env:LOCALAPPDATA\Programs\cloudflared\cloudflared.exe"
+   & $cloudflared tunnel login
+   ```
+
+3. Maak de tunnel en DNS-route aan; vervang de hostnaam door een adres onder je eigen domein:
+
+   ```powershell
+   & $cloudflared tunnel create trendstype
+   & $cloudflared tunnel route dns trendstype type.jouwdomein.nl
+   ```
+
+   Bewaar de tunnel-UUID die het eerste commando toont.
+4. Maak `%USERPROFILE%\.cloudflared\config.yml` met die UUID en het bijbehorende credentials-bestand:
+
+   ```yaml
+   tunnel: <TUNNEL-UUID>
+   credentials-file: C:\Users\<JOUW-NAAM>\.cloudflared\<TUNNEL-UUID>.json
+
+   ingress:
+     - hostname: type.jouwdomein.nl
+       service: http://127.0.0.1:3000
+     - service: http_status:404
+   ```
+
+5. Start eerst TrendsType en daarna de tunnel in een tweede PowerShell-venster:
+
+   ```powershell
+   & "$env:LOCALAPPDATA\Programs\cloudflared\cloudflared.exe" tunnel run trendstype
+   ```
+
+Druk op `Ctrl+C` om de tunnel te stoppen en start hetzelfde commando opnieuw om hem weer aan te zetten. De URL blijft gelijk, maar is alleen bereikbaar zolang zowel TrendsType als de tunnel draaien. Zonder Cloudflare Access kan iedereen met de vaste URL de app bereiken.
