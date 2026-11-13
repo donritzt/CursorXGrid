@@ -4,7 +4,7 @@ Een typetest met tijd- en woordmodi, Nederlandse en Engelse woorden en een apart
 
 ## Lokaal starten
 
-Dubbelklik op [`start-trendstype.bat`](./start-trendstype.bat) in de projectmap. De eerste keer installeert het script zo nodig automatisch de benodigde onderdelen. Open daarna <http://localhost:3000> in je browser.
+Dubbelklik op [`scripts/start-trendstype.bat`](./scripts/start-trendstype.bat) in de projectmap. De eerste keer installeert het script zo nodig automatisch de benodigde onderdelen. Open daarna <http://localhost:3000> in je browser.
 
 Laat het zwarte servervenster open zolang je de app gebruikt. Druk in dat venster op `Ctrl+C` om de server te stoppen. Als Node.js niet gevonden wordt, bekijk dan de installatie-informatie in deze README.
 
@@ -13,6 +13,14 @@ Je kunt de server ook handmatig vanuit VS Code starten via **Terminal → New Te
 ```powershell
 & "$env:LOCALAPPDATA\Programs\TrendsType-Node\node.exe" server.js
 ```
+
+## Projectstructuur
+
+- `server.js`: Express-server en API.
+- `public/`: frontend; afbeeldingen staan in `public/assets/`.
+- `scripts/`: Windows-startscript.
+- `supabase/`: SQL-schema voor centrale scores.
+- `package.json` en `package-lock.json`: projectafhankelijkheden.
 
 ## Typetest gebruiken
 
@@ -41,36 +49,4 @@ Supabase biedt een gratis pakket met gebruikslimieten en voorwaarden die kunnen 
    SUPABASE_SERVICE_ROLE_KEY=jouw-geheime-service-role-sleutel
    ```
 
-4. Herstart de server met `start-trendstype.bat`. In het servervenster hoort te staan dat scores in Supabase worden opgeslagen.
-
-De geheime sleutel wordt alleen door de backend gebruikt en `.env` is uitgesloten van Git. Als beide Supabase-waarden leeg zijn, gebruikt de app lokale JSON-opslag. Als Supabase is ingesteld maar niet bereikbaar is, meldt de app een fout en schakelt hij niet stilletjes over naar lokale opslag. Bij het starten worden bestaande scores uit `data/scores.json` veilig naar Supabase overgezet; opnieuw starten maakt geen dubbele scores aan.
-
-## Eigen domein met Cloudflare Tunnel
-
-Zorg dat `cloudflared` beschikbaar is en dat je domein in Cloudflare staat. Maak een tunnel aan (eenmalig):
-
-```powershell
-cloudflared tunnel login
-cloudflared tunnel create trendstype
-cloudflared tunnel route dns trendstype type.jouwdomein.nl
-```
-
-Maak `%USERPROFILE%\.cloudflared\config.yml` met de UUID die `tunnel create` heeft getoond:
-
-```yaml
-tunnel: <TUNNEL-UUID>
-credentials-file: C:\Users\<JOUW-NAAM>\.cloudflared\<TUNNEL-UUID>.json
-
-ingress:
-  - hostname: type.jouwdomein.nl
-    service: http://127.0.0.1:3000
-  - service: http_status:404
-```
-
-Start eerst de TrendsType-server en daarna in een tweede PowerShell-venster:
-
-```powershell
-cloudflared tunnel run trendstype
-```
-
-Gebruik Cloudflare Access om de openbare domeinnaam af te schermen. Zonder toegangsbeleid kan iedereen met de URL de app bereiken.
+4. Herstart de server met `scripts\start-trendstype.bat`. In het servervenster hoort te staan dat scores in Supabase worden opgeslagen.
