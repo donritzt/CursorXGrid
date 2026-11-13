@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080b10">
+    <meta name="description" content="Een eenvoudige typetest.">
+    <title>TrendsType</title>
+    <link rel="icon" type="image/png" href="/assets/company-logo.png">
+    <link rel="stylesheet" href="/style.css">
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <div class="top-accent">
+      <span class="top-accent-message">De snelste TrendsTyper wint een prijs!</span>
+    </div>
+    <div class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="TrendsType startpagina">
+          <img class="brand-logo" src="/assets/company-logo.png" alt="">
+          <span class="brand-name">TrendsType</span>
+        </a>
+        <nav class="nav-menu" aria-label="Navigatie">
+          <button class="nav-menu-toggle" id="nav-menu-toggle" type="button" aria-expanded="false" aria-controls="main-tabs">
+            <span id="current-tab-label">Typetest</span>
+            <span class="nav-chevron" aria-hidden="true">⌄</span>
+          </button>
+          <div class="main-tabs" id="main-tabs" role="tablist" aria-label="Pagina's" aria-hidden="true">
+            <button class="main-tab active" id="test-tab" type="button" role="tab" aria-selected="true" aria-controls="test-panel" tabindex="0" data-tab="test">Typetest</button>
+            <button class="main-tab" id="scores-tab" type="button" role="tab" aria-selected="false" aria-controls="scores-panel" tabindex="-1" data-tab="scores">Scores</button>
+          </div>
+        </nav>
+      </header>
+
+      <main>
+        <section class="tester tab-panel" id="test-panel" role="tabpanel" aria-labelledby="test-tab">
+          <div class="section-heading">
+            <h1 class="visually-hidden" id="test-heading">Test</h1>
+            <button class="icon-button" id="restart-button" type="button" aria-label="Test opnieuw starten" title="Opnieuw starten (Tab + Enter)">↻</button>
+          </div>
+
+          <div class="settings" aria-label="Testinstellingen">
+            <div class="setting-group" role="group" aria-label="Testmodus">
+              <button class="setting-button mode-button active" type="button" data-mode="time">tijd</button>
+              <button class="setting-button mode-button" type="button" data-mode="words">woorden</button>
+            </div>
+            <span class="setting-divider" aria-hidden="true"></span>
+            <div class="setting-group" id="time-options" role="group" aria-label="Tijdsduur">
+              <button class="setting-button value-button active" type="button" data-value="15">15</button>
+              <button class="setting-button value-button" type="button" data-value="30">30</button>
+              <button class="setting-button value-button" type="button" data-value="60">60</button>
+            </div>
+            <div class="setting-group hidden" id="word-options" role="group" aria-label="Aantal woorden">
+              <button class="setting-button value-button" type="button" data-value="10">10</button>
+              <button class="setting-button value-button" type="button" data-value="25">25</button>
+              <button class="setting-button value-button" type="button" data-value="50">50</button>
+            </div>
+            <span class="setting-divider" aria-hidden="true"></span>
+            <div class="setting-group" role="group" aria-label="Taal">
+              <button class="setting-button language-button active" type="button" data-language="nl" aria-pressed="true">Nederlands</button>
+              <button class="setting-button language-button" type="button" data-language="en" aria-pressed="false">English</button>
+            </div>
+            <div class="setting-group" role="group" aria-label="Moeilijkheidsgraad">
+              <select class="difficulty-select" id="difficulty-select" aria-label="Moeilijkheidsgraad">
+                <option value="normal">Normaal</option>
+                <option value="1k">1k</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="test-meta" aria-live="polite">
+            <div class="timer-wrap">
+              <span class="meta-label" id="progress-label">tijd</span>
+              <span class="timer" id="timer">15</span>
+            </div>
+            <p class="test-hint" id="test-hint"></p>
+          </div>
+
+          <div class="typing-panel" id="typing-panel">
+            <div class="words" id="words" aria-label="Te typen tekst"></div>
+            <span class="typing-caret ghost-caret" id="ghost-caret" aria-hidden="true" hidden></span>
+            <span class="typing-caret" id="typing-caret" aria-hidden="true"></span>
+            <input id="typing-input" class="typing-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Typ de getoonde woorden" aria-describedby="test-hint">
+            <div class="live-wpm" aria-live="off"><span id="live-wpm">0</span><span class="live-wpm-label">wpm</span></div>
+            <section class="typing-results" id="typing-results" aria-labelledby="results-title" aria-live="polite" hidden>
+              <p class="results-kicker">Test afgerond</p>
+              <h2 class="results-title" id="results-title">Score</h2>
+              <div class="results-stats">
+                <div class="results-stat">
+                  <span class="results-value" id="result-wpm">0</span>
+                  <span class="results-label">WPM</span>
+                </div>
+                <div class="results-stat">
+                  <span class="results-value" id="result-accuracy">0%</span>
+                  <span class="results-label">Nauwkeurigheid</span>
+                </div>
+                <div class="results-stat">
+                  <span class="results-value" id="result-errors">0</span>
+                  <span class="results-label">Fouten</span>
+                </div>
+              </div>
+              <div class="results-actions">
+                <button class="results-restart" id="results-restart" type="button">Opnieuw typen</button>
+                <button class="results-replay" id="results-replay" type="button">Zelfde tekst opnieuw</button>
+              </div>
+              <p class="results-hint">Druk op Esc om terug te gaan</p>
+            </section>
+          </div>
+          <p class="keyboard-hint"><kbd>tab</kbd> + <kbd>enter</kbd> herstart <span>·</span> <kbd>backspace</kbd> corrigeert</p>
+        </section>
+
+        <section class="leaderboard tab-panel" id="scores-panel" role="tabpanel" aria-labelledby="scores-tab" hidden>
+          <div class="section-heading leaderboard-heading">
+            <div>
+              <p class="eyebrow">resultaten</p>
+              <h2 id="leaderboard-heading">Scores</h2>
+            </div>
+            <span class="live-label"><span class="status-dot"></span> live</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">naam</th>
+                  <th scope="col">wpm</th>
+                  <th scope="col">nauwkeurigheid</th>
+                  <th scope="col">modus</th>
+                </tr>
+              </thead>
+              <tbody id="score-list">
+                <tr><td class="empty-state" colspan="5">Scores ophalen...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="leaderboard-footnote">Maximaal 20 scores · automatisch bijgewerkt</p>
+        </section>
+      </main>
+    </div>
+
+    <label class="font-control">
+      <span>Aa</span>
+      <select id="font-select" aria-label="Lettertype">
+        <option value="inter">Inter</option>
+        <option value="system">Segoe UI</option>
+        <option value="mono">JetBrains Mono</option>
+        <option value="georgia">Georgia</option>
+      </select>
+    </label>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
