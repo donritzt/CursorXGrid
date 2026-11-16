@@ -12,7 +12,7 @@
   </head>
   <body>
     <div class="top-accent">
-      <span class="top-accent-message">De snelste TrendsTyper wint een prijs!</span>
+      <span class="top-accent-message">De snelste Typer vindt de beste resultaten!</span>
     </div>
     <div class="page-shell">
       <header class="topbar">
@@ -82,31 +82,80 @@
             <span class="typing-caret" id="typing-caret" aria-hidden="true"></span>
             <input id="typing-input" class="typing-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Typ de getoonde woorden" aria-describedby="test-hint">
             <div class="live-wpm" aria-live="off"><span id="live-wpm">0</span><span class="live-wpm-label">wpm</span></div>
-            <section class="typing-results" id="typing-results" aria-labelledby="results-title" aria-live="polite" hidden>
-              <p class="results-kicker">Test afgerond</p>
-              <h2 class="results-title" id="results-title">Score</h2>
-              <div class="results-stats">
-                <div class="results-stat">
-                  <span class="results-value" id="result-wpm">0</span>
-                  <span class="results-label">WPM</span>
+            <div class="race-hud" id="race-hud" aria-live="polite" hidden>
+              <span class="race-score"><strong id="race-score">0</strong><span>woorden</span></span>
+              <span class="race-bonus-status" id="race-bonus-status"></span>
+            </div>
+            <section class="race-countdown" id="race-countdown" aria-live="assertive" aria-label="Time Race begint over" hidden>
+              <p class="race-countdown-kicker">Time Race</p>
+              <div class="race-countdown-number-wrap">
+                <strong class="race-countdown-number" id="race-countdown-number">3</strong>
+              </div>
+              <p class="race-countdown-ready">Maak je klaar</p>
+            </section>
+            <section class="typing-results" id="typing-results" aria-label="Testresultaten" aria-live="polite" hidden>
+              <div class="results-overview">
+                <div class="results-primary-stats">
+                  <div class="results-stat">
+                    <span class="results-value" id="result-wpm">0</span>
+                    <span class="results-label">WPM</span>
+                  </div>
+                  <div class="results-stat">
+                    <span class="results-value" id="result-accuracy">0%</span>
+                    <span class="results-label">Nauwkeurigheid</span>
+                  </div>
                 </div>
+                <div class="results-chart-wrap">
+                  <div class="results-chart-heading">
+                    <h3 id="results-chart-heading">Tempo tijdens de test</h3>
+                    <span>Raw WPM per seconde</span>
+                  </div>
+                  <svg class="results-chart" id="results-chart" viewBox="0 0 640 190" preserveAspectRatio="none" role="img" aria-labelledby="results-chart-title results-chart-caption">
+                    <title id="results-chart-title">Typtempo tijdens de test</title>
+                  </svg>
+                  <p class="results-chart-caption" id="results-chart-caption">Een daling betekent dat je tempo lager lag of dat je even pauzeerde.</p>
+                </div>
+              </div>
+              <div class="results-secondary-stats">
                 <div class="results-stat">
-                  <span class="results-value" id="result-accuracy">0%</span>
-                  <span class="results-label">Nauwkeurigheid</span>
+                  <span class="results-value" id="result-raw-wpm">0</span>
+                  <span class="results-label">Raw WPM</span>
                 </div>
                 <div class="results-stat">
                   <span class="results-value" id="result-errors">0</span>
                   <span class="results-label">Fouten</span>
                 </div>
+                <div class="results-stat">
+                  <span class="results-value" id="result-consistency">0%</span>
+                  <span class="results-label" title="100% betekent dat je tempo gelijk bleef; sterke snelheidswisselingen verlagen dit cijfer.">Consistentie</span>
+                </div>
               </div>
+              <form class="score-save-form" id="score-save-form" hidden>
+                <div class="score-save-fields">
+                  <label for="score-name">Naam voor het scorebord</label>
+                  <input id="score-name" name="name" type="text" maxlength="24" autocomplete="name" placeholder="Je naam" required>
+                  <button class="results-restart score-save-button" id="score-save-button" type="submit" disabled>Score opslaan</button>
+                </div>
+                <p class="score-save-status" id="score-save-status" role="status" aria-live="polite"></p>
+              </form>
               <div class="results-actions">
                 <button class="results-restart" id="results-restart" type="button">Opnieuw typen</button>
                 <button class="results-replay" id="results-replay" type="button">Zelfde tekst opnieuw</button>
               </div>
-              <p class="results-hint">Druk op Esc om terug te gaan</p>
+              <p class="results-hint"><kbd>enter</kbd> dezelfde tekst opnieuw <span>·</span> <kbd>esc</kbd> terug naar de typetest</p>
+            </section>
+            <section class="race-game-over" id="race-game-over" aria-labelledby="race-game-over-title" aria-live="polite" hidden>
+              <p class="race-game-over-kicker">Time Race</p>
+              <h2 id="race-game-over-title">Tijd is op</h2>
+              <div class="race-final-score"><strong id="race-final-score">0</strong><span>woorden</span></div>
+              <p class="race-bonus-total" id="race-bonus-total"></p>
+              <div class="race-game-over-actions">
+                <button class="results-restart" id="race-restart" type="button">Opnieuw spelen</button>
+                <button class="results-replay" id="race-exit" type="button">Terug naar typetest</button>
+              </div>
             </section>
           </div>
-          <p class="keyboard-hint"><kbd>tab</kbd> + <kbd>enter</kbd> herstart <span>·</span> <kbd>backspace</kbd> corrigeert</p>
+          <p class="keyboard-hint"><kbd>tab</kbd> + <kbd>enter</kbd> herstart <span>·</span> <kbd>esc</kbd> stopt <span>·</span> <kbd>backspace</kbd> corrigeert</p>
         </section>
 
         <section class="leaderboard tab-panel" id="scores-panel" role="tabpanel" aria-labelledby="scores-tab" hidden>
@@ -136,7 +185,21 @@
           <p class="leaderboard-footnote">Maximaal 20 scores · automatisch bijgewerkt</p>
         </section>
       </main>
+      <button class="time-race-card" id="time-race-launcher" type="button" aria-label="Start Time Race">
+        <svg class="time-race-icon" viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="24" cy="25" r="16" fill="none" stroke="currentColor" stroke-width="2.5"/>
+          <path d="M24 15v11l7 4M19 4h10M24 4v5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M36 13l3-3" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <span class="time-race-title">Time Race</span>
+        <span class="time-race-subtitle">10 seconden</span>
+      </button>
     </div>
+
+    <a class="github-link" href="https://github.com/donritzt" target="_blank" rel="noopener noreferrer" aria-label="GitHub-profiel van donritzt (opent in een nieuw tabblad)">
+      <img src="/assets/github-logo.webp" alt="">
+      <span>donritzt</span>
+    </a>
 
     <label class="font-control">
       <span>Aa</span>

@@ -21,13 +21,31 @@ const state = {
   started: false,
   finished: false,
   correctedErrors: 0,
+  totalTypedChars: 0,
   isReplay: false,
   bestRun: null,
   progressSamples: [],
   startAt: 0,
   timerId: null,
   liveTimerId: null,
-  renderedLineIndex: null
+  renderedLineIndex: null,
+  transitioning: false,
+  gameMode: "typing",
+  raceScore: 0,
+  raceBonusIndex: null,
+  raceWordsUntilBonus: 0,
+  raceTimeRemaining: 10000,
+  raceLastTick: 0,
+  raceBonuses: 0,
+  raceStatusTimeout: null,
+  raceCountdownId: null,
+  raceCountdownValue: 3,
+  testRunId: 0,
+  sessionPromise: null,
+  scoreSessionReady: false,
+  scoreSaving: false,
+  scoreSaved: false,
+  scoreSubmission: null
 };
 
 const els = {
@@ -47,9 +65,27 @@ const els = {
   scoresPanel: document.querySelector("#scores-panel"),
   results: document.querySelector("#typing-results"),
   resultWpm: document.querySelector("#result-wpm"),
+  resultRawWpm: document.querySelector("#result-raw-wpm"),
   resultAccuracy: document.querySelector("#result-accuracy"),
   resultErrors: document.querySelector("#result-errors"),
+  resultConsistency: document.querySelector("#result-consistency"),
+  resultsChart: document.querySelector("#results-chart"),
   replayButton: document.querySelector("#results-replay"),
+  scoreForm: document.querySelector("#score-save-form"),
+  scoreName: document.querySelector("#score-name"),
+  scoreSaveButton: document.querySelector("#score-save-button"),
+  scoreSaveStatus: document.querySelector("#score-save-status"),
+  raceHud: document.querySelector("#race-hud"),
+  raceScore: document.querySelector("#race-score"),
+  raceBonusStatus: document.querySelector("#race-bonus-status"),
+  raceCountdown: document.querySelector("#race-countdown"),
+  raceCountdownNumber: document.querySelector("#race-countdown-number"),
+  raceGameOver: document.querySelector("#race-game-over"),
+  raceFinalScore: document.querySelector("#race-final-score"),
+  raceBonusTotal: document.querySelector("#race-bonus-total"),
+  raceLauncher: document.querySelector("#time-race-launcher"),
+  raceRestart: document.querySelector("#race-restart"),
+  raceExit: document.querySelector("#race-exit"),
   fontSelect: document.querySelector("#font-select"),
   toast: document.querySelector("#toast")
 };
@@ -63,11 +99,51 @@ function shuffledWords(bank) {
   return words;
 }
 
-function resetTest({ words, bestRun = null, isReplay = false } = {}) {
+function resetTest(options = {}) {
+  if (state.transitioning) return;
+  if (!state.finished || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    applyTestReset(options);
+    return;
+  }
+
+  state.transitioning = true;
+  els.results.classList.add("is-leaving");
+  window.setTimeout(() => {
+    const panelHeight = els.panel.getBoundingClientRect().height;
+    document.body.classList.add("test-returning");
+    applyTestReset(options);
+    els.panel.style.height = "auto";
+    const targetHeight = els.panel.getBoundingClientRect().height;
+    els.panel.classList.add("results-transitioning");
+    els.panel.style.height = `${panelHeight}px`;
+    void els.panel.offsetHeight;
+    els.panel.style.height = `${targetHeight}px`;
+
+    window.setTimeout(() => {
+      els.panel.style.height = "";
+      els.panel.classList.remove("results-transitioning");
+      document.body.classList.remove("test-returning");
+      state.transitioning = false;
+    }, 320);
+  }, 190);
+}
+
+function applyTestReset({ words, bestRun = null, isReplay = false } = {}) {
   clearInterval(state.timerId);
   clearInterval(state.liveTimerId);
+  clearInterval(state.raceCountdownId);
+  window.clearTimeout(state.raceStatusTimeout);
   state.timerId = null;
   state.liveTimerId = null;
+  state.raceCountdownId = null;
+  state.raceStatusTimeout = null;
+  state.testRunId += 1;
+  state.sessionPromise = null;
+  state.scoreSessionReady = false;
+  state.scoreSaving = false;
+  state.scoreSaved = false;
+  state.scoreSubmission = null;
+  state.gameMode = "typing";
   state.words = words ? [...words] : shuffledWords(wordBanks[state.language][state.difficulty]);
   state.typedWords = [];
   state.wordIndex = 0;
@@ -75,18 +151,37 @@ function resetTest({ words, bestRun = null, isReplay = false } = {}) {
   state.started = false;
   state.finished = false;
   state.correctedErrors = 0;
+  state.totalTypedChars = 0;
   state.isReplay = isReplay;
   state.bestRun = bestRun;
-  state.progressSamples = [{ elapsedMs: 0, wordIndex: 0, charIndex: 0 }];
+  state.progressSamples = [{ elapsedMs: 0, wordIndex: 0, charIndex: 0, totalTypedChars: 0 }];
   state.startAt = 0;
+  state.raceScore = 0;
+  state.raceBonusIndex = null;
+  state.raceWordsUntilBonus = 0;
+  state.raceTimeRemaining = 10000;
+  state.raceLastTick = 0;
+  state.raceBonuses = 0;
+  state.raceCountdownValue = 3;
   state.renderedLineIndex = null;
   setTimer(state.mode === "time" ? String(state.value) : `0/${state.value}`, false);
   els.liveWpm.textContent = "0";
   els.progressLabel.textContent = state.mode === "time" ? "tijd" : "woorden";
   els.hint.textContent = "";
   els.input.value = "";
-  document.body.classList.remove("test-running", "test-finished");
+  document.body.classList.remove("test-running", "test-finished", "time-race", "time-race-countdown", "time-race-finished");
   els.results.hidden = true;
+  els.scoreForm.hidden = true;
+  els.scoreForm.reset();
+  els.scoreName.disabled = false;
+  els.scoreSaveButton.disabled = true;
+  els.scoreSaveStatus.textContent = "";
+  els.scoreSaveStatus.classList.remove("error");
+  els.raceHud.hidden = true;
+  els.raceCountdown.hidden = true;
+  els.raceGameOver.hidden = true;
+  els.raceBonusStatus.textContent = "";
+  els.results.classList.remove("is-leaving");
   els.input.disabled = false;
   layoutWords();
   renderWords();
@@ -150,6 +245,9 @@ function renderWords() {
       const typed = wordIndex === state.wordIndex ? state.currentInput : (state.typedWords[wordIndex] || "");
       const wordElement = document.createElement("span");
       wordElement.className = "word";
+      if (state.gameMode === "time-race" && wordIndex === state.raceBonusIndex) {
+        wordElement.classList.add("bonus-word");
+      }
       wordElement.dataset.wordIndex = String(wordIndex);
 
       for (let charIndex = 0; charIndex < target.length; charIndex += 1) {
@@ -188,15 +286,13 @@ function positionCaret() {
   positionCaretAt(els.caret, state.wordIndex, state.currentInput.length);
 }
 
-function positionCaretAt(caret, wordIndex, charIndex) {
-  const word = els.words.querySelector(`[data-word-index="${wordIndex}"]`);
+function positionCaretAt(caret, wordIndex, charIndex, word = els.words.querySelector(`[data-word-index="${wordIndex}"]`)) {
   if (!word) {
     caret.hidden = true;
     return;
   }
 
-  const letters = word.querySelectorAll(".letter");
-  const nextLetter = letters[charIndex];
+  const nextLetter = word.children[charIndex];
   const target = nextLetter || word.lastElementChild;
   if (!target) {
     caret.hidden = true;
@@ -209,6 +305,51 @@ function positionCaretAt(caret, wordIndex, charIndex) {
   caret.hidden = false;
   caret.style.height = `${targetRect.height}px`;
   caret.style.transform = `translate3d(${left - panelRect.left}px, ${targetRect.top - panelRect.top}px, 0)`;
+}
+
+function updateWordAfterTyping() {
+  const word = els.words.querySelector(`[data-word-index="${state.wordIndex}"]`);
+  if (!word) {
+    renderWords();
+    return;
+  }
+
+  const target = state.words[state.wordIndex];
+  const charIndex = state.currentInput.length - 1;
+  if (charIndex < target.length) {
+    const letter = word.children[charIndex];
+    letter.classList.remove("current");
+    letter.classList.add(state.currentInput[charIndex] === target[charIndex] ? "correct" : "incorrect");
+  } else {
+    const extra = document.createElement("span");
+    extra.className = "extra-letter";
+    extra.textContent = state.currentInput[charIndex];
+    word.append(extra);
+  }
+
+  if (state.currentInput.length < target.length) {
+    word.children[state.currentInput.length].classList.add("current");
+  }
+  positionCaretAt(els.caret, state.wordIndex, state.currentInput.length, word);
+}
+
+function updateWordAfterBackspace() {
+  const word = els.words.querySelector(`[data-word-index="${state.wordIndex}"]`);
+  if (!word) {
+    renderWords();
+    return;
+  }
+
+  const target = state.words[state.wordIndex];
+  const charIndex = state.currentInput.length;
+  if (charIndex < target.length) {
+    const letter = word.children[charIndex];
+    letter.classList.remove("correct", "incorrect");
+    letter.classList.add("current");
+  } else {
+    word.lastElementChild?.remove();
+  }
+  positionCaretAt(els.caret, state.wordIndex, state.currentInput.length, word);
 }
 
 function getGhostProgress() {
@@ -276,7 +417,8 @@ function recordProgress(force = false) {
   state.progressSamples.push({
     elapsedMs: Math.max(last ? last.elapsedMs : 0, elapsedMs),
     wordIndex: state.wordIndex,
-    charIndex
+    charIndex,
+    totalTypedChars: state.totalTypedChars
   });
 }
 
@@ -299,10 +441,85 @@ function setFont(fontName) {
   renderWords();
 }
 
+function setScoreSaveStatus(message, isError = false) {
+  els.scoreSaveStatus.textContent = message;
+  els.scoreSaveStatus.classList.toggle("error", isError);
+}
+
+async function readApiResponse(response) {
+  let payload;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new Error("De server gaf een ongeldige reactie.");
+  }
+  if (!response.ok) {
+    throw new Error(payload.error || "De aanvraag is mislukt.");
+  }
+  return payload;
+}
+
+async function openScoreSession(runId) {
+  try {
+    const response = await fetch("/api/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ mode: `${state.mode}:${state.value}` })
+    });
+    const payload = await readApiResponse(response);
+    if (runId !== state.testRunId) return null;
+    if (typeof payload.sessionId !== "string" || !payload.sessionId) {
+      throw new Error("De server heeft geen testsessie aangemaakt.");
+    }
+    return payload.sessionId;
+  } catch (error) {
+    if (runId === state.testRunId) {
+      setScoreSaveStatus(`Score opslaan niet beschikbaar: ${error.message}`, true);
+    }
+    console.error("Could not start score session:", error);
+    return null;
+  }
+}
+
+async function prepareScoreSubmission(runId, correctChars, incorrectChars) {
+  try {
+    const sessionId = await state.sessionPromise;
+    if (runId !== state.testRunId || !sessionId) return;
+    const response = await fetch("/api/sessions/finish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ sessionId })
+    });
+    await readApiResponse(response);
+    if (runId !== state.testRunId) return;
+
+    if (correctChars + incorrectChars < 1) {
+      setScoreSaveStatus("Er zijn geen getypte tekens om op te slaan.", true);
+      return;
+    }
+    state.scoreSubmission = {
+      sessionId,
+      mode: `${state.mode}:${state.value}`,
+      correctChars,
+      incorrectChars
+    };
+    state.scoreSessionReady = true;
+    els.scoreSaveButton.disabled = false;
+    setScoreSaveStatus("Vul je naam in om je score op te slaan.");
+  } catch (error) {
+    if (runId === state.testRunId) {
+      setScoreSaveStatus(`Score opslaan niet beschikbaar: ${error.message}`, true);
+    }
+    console.error("Could not finish score session:", error);
+  }
+}
+
 function beginTest() {
   if (state.started || state.finished) return;
   state.started = true;
   state.startAt = performance.now();
+  const runId = state.testRunId;
+  state.sessionPromise = openScoreSession(runId);
   document.body.classList.add("test-running");
   layoutWords();
   els.hint.textContent = state.mode === "time" ? "Typ door tot de timer op nul staat" : `${state.value} woorden`;
@@ -328,6 +545,167 @@ function updateCountdown() {
   if (remaining <= 0) finishTest();
 }
 
+function randomInt(minimum, maximum) {
+  return Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+}
+
+function startTimeRace() {
+  if (state.transitioning) return;
+  state.finished = false;
+  applyTestReset();
+  state.gameMode = "time-race";
+  state.words = shuffledWords(wordBanks[state.language][state.difficulty]).slice(0, 200);
+  state.raceWordsUntilBonus = randomInt(3, 5);
+  state.raceTimeRemaining = 10000;
+  state.raceScore = 0;
+  state.raceBonuses = 0;
+  state.raceBonusIndex = null;
+  els.raceScore.textContent = "0";
+  els.raceBonusStatus.textContent = "";
+  els.progressLabel.textContent = "tijd";
+  els.hint.textContent = "Typ het woord en druk op spatie of enter";
+  state.raceCountdownValue = 3;
+  els.raceCountdownNumber.textContent = "3";
+  els.raceCountdownNumber.classList.remove("pulse");
+  void els.raceCountdownNumber.offsetWidth;
+  els.raceCountdownNumber.classList.add("pulse");
+  els.raceCountdown.hidden = false;
+  els.raceHud.hidden = true;
+  els.raceGameOver.hidden = true;
+  els.input.disabled = true;
+  document.body.classList.add("time-race", "time-race-countdown");
+  state.raceCountdownId = window.setInterval(updateTimeRaceStartCountdown, 1000);
+}
+
+function updateTimeRaceStartCountdown() {
+  state.raceCountdownValue -= 1;
+  if (state.raceCountdownValue <= 0) {
+    beginTimeRace();
+    return;
+  }
+  els.raceCountdownNumber.classList.remove("pulse");
+  void els.raceCountdownNumber.offsetWidth;
+  els.raceCountdownNumber.textContent = String(state.raceCountdownValue);
+  els.raceCountdownNumber.classList.add("pulse");
+}
+
+function beginTimeRace() {
+  clearInterval(state.raceCountdownId);
+  state.raceCountdownId = null;
+  els.raceCountdown.hidden = true;
+  els.raceHud.hidden = false;
+  els.input.disabled = false;
+  setTimer("10.0", false);
+  document.body.classList.remove("time-race-countdown");
+  state.started = true;
+  state.startAt = performance.now();
+  state.raceLastTick = state.startAt;
+  document.body.classList.add("test-running");
+  layoutWords();
+  renderWords();
+  state.timerId = window.setInterval(updateTimeRaceCountdown, 50);
+  focusInput();
+}
+
+function updateTimeRaceCountdown() {
+  if (!state.started || state.finished || state.gameMode !== "time-race") return;
+  const now = performance.now();
+  state.raceTimeRemaining = Math.max(0, state.raceTimeRemaining - (now - state.raceLastTick));
+  state.raceLastTick = now;
+  setTimer((state.raceTimeRemaining / 1000).toFixed(1), false);
+  if (state.raceTimeRemaining <= 0) finishTimeRace();
+}
+
+function handleTimeRaceKeydown(event) {
+  if (event.ctrlKey || event.metaKey || event.altKey || state.finished) return;
+  if (event.key === "Backspace") {
+    event.preventDefault();
+    if (state.currentInput.length === 0) return;
+    state.currentInput = state.currentInput.slice(0, -1);
+    updateWordAfterBackspace();
+    return;
+  }
+  if (event.key === " " || event.key === "Enter") {
+    event.preventDefault();
+    if (state.currentInput !== state.words[state.wordIndex]) {
+      els.hint.textContent = "Onjuist woord — verbeter je invoer.";
+      els.raceBonusStatus.textContent = "Onjuist woord";
+      window.clearTimeout(state.raceStatusTimeout);
+      state.raceStatusTimeout = window.setTimeout(() => {
+        els.raceBonusStatus.textContent = "";
+      }, 1200);
+      return;
+    }
+
+    const wasBonus = state.raceBonusIndex === state.wordIndex;
+    state.typedWords[state.wordIndex] = state.currentInput;
+    state.currentInput = "";
+    state.wordIndex += 1;
+    state.raceScore += 1;
+    els.raceScore.textContent = String(state.raceScore);
+
+    if (state.wordIndex >= state.words.length - 10) {
+      state.words.push(...shuffledWords(wordBanks[state.language][state.difficulty]).slice(0, 50));
+      layoutWords();
+    }
+
+    if (wasBonus) {
+      state.raceBonusIndex = null;
+      state.raceWordsUntilBonus = randomInt(3, 5);
+      state.raceTimeRemaining += 3000;
+      els.raceBonusStatus.textContent = "+3 seconden!";
+      window.clearTimeout(state.raceStatusTimeout);
+      state.raceStatusTimeout = window.setTimeout(() => {
+        els.raceBonusStatus.textContent = "";
+      }, 1400);
+      setTimer((state.raceTimeRemaining / 1000).toFixed(1), false);
+      state.raceBonuses += 1;
+    } else {
+      state.raceWordsUntilBonus -= 1;
+      if (state.raceWordsUntilBonus <= 0) {
+        state.raceBonusIndex = state.wordIndex;
+      }
+    }
+
+    els.hint.textContent = "Typ het woord en druk op spatie of enter";
+    renderWords();
+    return;
+  }
+  if (event.key.length !== 1 || event.key < " ") return;
+  event.preventDefault();
+  state.currentInput += event.key.toLocaleLowerCase();
+  state.totalTypedChars += 1;
+  updateWordAfterTyping();
+}
+
+function finishTimeRace() {
+  if (state.finished || state.gameMode !== "time-race") return;
+  state.finished = true;
+  state.started = false;
+  state.raceTimeRemaining = 0;
+  clearInterval(state.timerId);
+  window.clearTimeout(state.raceStatusTimeout);
+  state.timerId = null;
+  state.raceStatusTimeout = null;
+  setTimer("0.0", false);
+  els.input.disabled = true;
+  els.input.blur();
+  els.raceHud.hidden = true;
+  els.raceFinalScore.textContent = String(state.raceScore);
+  els.raceBonusTotal.textContent = state.raceBonuses
+    ? `${state.raceBonuses} bonuswoord${state.raceBonuses === 1 ? "" : "en"} geraakt`
+    : "Geen bonuswoorden geraakt";
+  els.raceGameOver.hidden = false;
+  document.body.classList.remove("test-running");
+  document.body.classList.add("time-race-finished");
+}
+
+function exitTimeRace() {
+  if (state.gameMode !== "time-race") return;
+  state.finished = false;
+  applyTestReset();
+}
+
 function countCharacters() {
   let correctChars = 0;
   let incorrectChars = 0;
@@ -343,8 +721,92 @@ function countCharacters() {
   return { correctChars, incorrectChars };
 }
 
+function getSpeedSamples(trace, elapsedMs) {
+  const durationMs = Math.max(1000, elapsedMs);
+  const sampleTimes = [];
+  for (let sampleTime = 1000; sampleTime < durationMs; sampleTime += 1000) {
+    sampleTimes.push(sampleTime);
+  }
+  sampleTimes.push(durationMs);
+
+  let endIndex = 0;
+  let startIndex = 0;
+  return sampleTimes.map((sampleTime) => {
+    const windowStart = Math.max(0, sampleTime - 1000);
+    while (endIndex + 1 < trace.length && trace[endIndex + 1].elapsedMs <= sampleTime) endIndex += 1;
+    while (startIndex + 1 < trace.length && trace[startIndex + 1].elapsedMs <= windowStart) startIndex += 1;
+
+    const endChars = trace[endIndex]?.totalTypedChars || 0;
+    const startChars = trace[startIndex]?.totalTypedChars || 0;
+    const windowMs = Math.min(1000, sampleTime);
+    return {
+      elapsedMs: sampleTime,
+      rawWpm: ((endChars - startChars) * 60000) / (5 * windowMs)
+    };
+  });
+}
+
+function calculateConsistency(samples) {
+  const average = samples.reduce((total, sample) => total + sample.rawWpm, 0) / samples.length;
+  if (!Number.isFinite(average) || average <= 0) return 0;
+
+  const variance = samples.reduce((total, sample) => total + (sample.rawWpm - average) ** 2, 0) / samples.length;
+  const variation = Math.sqrt(variance) / average;
+  return Math.round(Math.max(0, Math.min(100, (1 - variation) * 100)));
+}
+
+function renderResultsChart(samples, elapsedMs) {
+  const svg = els.resultsChart;
+  const title = svg.querySelector("title");
+  title.textContent = `Raw WPM per seconde tijdens een test van ${(elapsedMs / 1000).toFixed(1)} seconden`;
+  svg.replaceChildren(title);
+
+  const width = svg.clientWidth || 640;
+  const height = svg.clientHeight || 190;
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  const padding = { top: 12, right: 12, bottom: 28, left: 44 };
+  const plotWidth = width - padding.left - padding.right;
+  const plotHeight = height - padding.top - padding.bottom;
+  const durationMs = Math.max(1000, elapsedMs);
+  const peakWpm = Math.max(20, ...samples.map((sample) => sample.rawWpm));
+  const maxWpm = Math.ceil(peakWpm / 20) * 20;
+  const createElement = (name, attributes, text) => {
+    const element = document.createElementNS("http://www.w3.org/2000/svg", name);
+    Object.entries(attributes).forEach(([attribute, value]) => element.setAttribute(attribute, String(value)));
+    if (text !== undefined) element.textContent = text;
+    return element;
+  };
+  const getX = (timeMs) => padding.left + (timeMs / durationMs) * plotWidth;
+  const getY = (wpm) => padding.top + plotHeight - (wpm / maxWpm) * plotHeight;
+
+  [0, maxWpm / 2, maxWpm].forEach((wpm) => {
+    const y = getY(wpm);
+    svg.append(
+      createElement("line", { x1: padding.left, y1: y, x2: width - padding.right, y2: y, class: "chart-grid-line" }),
+      createElement("text", { x: padding.left - 8, y: y + 4, class: "chart-axis-label", "text-anchor": "end" }, String(Math.round(wpm)))
+    );
+  });
+
+  const points = [{ elapsedMs: 0, rawWpm: 0 }, ...samples];
+  const pointList = points.map((sample) => `${getX(sample.elapsedMs)},${getY(sample.rawWpm)}`);
+  const linePath = pointList.map((point, index) => `${index === 0 ? "M" : "L"}${point}`).join(" ");
+  svg.append(createElement("path", { d: linePath, class: "chart-line" }));
+
+  const durationSeconds = elapsedMs / 1000;
+  [0, durationSeconds / 2, durationSeconds].forEach((seconds) => {
+    const x = getX(seconds * 1000);
+    svg.append(createElement("text", {
+      x,
+      y: height - 5,
+      class: "chart-axis-label",
+      "text-anchor": seconds === 0 ? "start" : seconds === durationSeconds ? "end" : "middle"
+    }, `${seconds.toFixed(seconds % 1 ? 1 : 0)}s`));
+  });
+}
+
 function finishTest() {
   if (state.finished) return;
+  const runId = state.testRunId;
   recordProgress(true);
   state.finished = true;
   clearInterval(state.timerId);
@@ -357,7 +819,10 @@ function finishTest() {
   const typedChars = correctChars + errors;
   const elapsedMs = Math.max(1000, performance.now() - state.startAt);
   const wpm = Math.round(correctChars / 5 / (elapsedMs / 60000));
+  const rawWpm = Math.round(state.totalTypedChars / 5 / (elapsedMs / 60000));
   const accuracy = typedChars ? (correctChars / typedChars) * 100 : 0;
+  const speedSamples = getSpeedSamples(state.progressSamples, elapsedMs);
+  const consistency = calculateConsistency(speedSamples);
   if (!state.bestRun || wpm > state.bestRun.wpm) {
     state.bestRun = {
       words: [...state.words],
@@ -366,15 +831,32 @@ function finishTest() {
     };
   }
   els.resultWpm.textContent = String(wpm);
+  els.resultRawWpm.textContent = String(rawWpm);
   els.resultAccuracy.textContent = `${accuracy.toFixed(1)}%`;
   els.resultErrors.textContent = Number.isInteger(errors) ? String(errors) : errors.toFixed(1);
+  els.resultConsistency.textContent = `${consistency}%`;
   els.results.hidden = false;
+  els.scoreForm.hidden = false;
+  els.scoreSaveButton.disabled = true;
+  setScoreSaveStatus("Score wordt gecontroleerd...");
+  void prepareScoreSubmission(runId, correctChars, Math.max(0, state.totalTypedChars - correctChars));
   els.input.disabled = true;
   els.input.blur();
+  document.body.classList.remove("test-running");
   document.body.classList.add("test-finished");
+  renderResultsChart(speedSamples, elapsedMs);
+  els.results.classList.remove("is-leaving");
 }
 
 function handleKeydown(event) {
+  if (state.transitioning) {
+    event.preventDefault();
+    return;
+  }
+  if (state.gameMode === "time-race") {
+    handleTimeRaceKeydown(event);
+    return;
+  }
   if (event.ctrlKey || event.metaKey || event.altKey || state.finished) return;
   if (event.key === "Backspace") {
     event.preventDefault();
@@ -385,16 +867,24 @@ function handleKeydown(event) {
         state.correctedErrors += 1;
       }
       state.currentInput = state.currentInput.slice(0, -1);
+      updateWordAfterBackspace();
     } else if (state.wordIndex > 0) {
       state.wordIndex -= 1;
       state.currentInput = state.typedWords[state.wordIndex] || "";
       state.typedWords[state.wordIndex] = "";
+      recordProgress();
+      if (state.mode === "words") {
+        setTimer(`${Math.min(state.wordIndex, state.value)}/${state.value}`);
+      }
+      renderWords();
+      return;
+    } else {
+      return;
     }
     recordProgress();
     if (state.mode === "words") {
       setTimer(`${Math.min(state.wordIndex, state.value)}/${state.value}`);
     }
-    renderWords();
     return;
   }
   if (event.key === " ") {
@@ -404,6 +894,7 @@ function handleKeydown(event) {
     state.typedWords[state.wordIndex] = state.currentInput;
     state.currentInput = "";
     state.wordIndex += 1;
+    state.totalTypedChars += 1;
     recordProgress();
     if (state.mode === "words") {
       setTimer(`${Math.min(state.wordIndex, state.value)}/${state.value}`);
@@ -417,10 +908,13 @@ function handleKeydown(event) {
   }
   if (event.key.length !== 1 || event.key < " ") return;
   event.preventDefault();
-  if (!state.started) beginTest();
+  const isFirstCharacter = !state.started;
+  if (isFirstCharacter) beginTest();
   state.currentInput += event.key.toLocaleLowerCase();
+  state.totalTypedChars += 1;
   recordProgress();
-  renderWords();
+  if (isFirstCharacter) renderWords();
+  else updateWordAfterTyping();
 }
 
 function replaySameText() {
@@ -520,6 +1014,7 @@ document.addEventListener("keydown", (event) => {
 });
 
 function activateTab(tabName) {
+  document.body.classList.toggle("scores-view", tabName === "scores");
   document.querySelectorAll(".main-tab").forEach((tab) => {
     const active = tab.dataset.tab === tabName;
     tab.classList.toggle("active", active);
@@ -569,6 +1064,10 @@ document.querySelectorAll(".mode-button").forEach((button) => {
   });
 });
 
+els.raceLauncher.addEventListener("click", startTimeRace);
+els.raceRestart.addEventListener("click", startTimeRace);
+els.raceExit.addEventListener("click", exitTimeRace);
+
 document.querySelectorAll(".value-button").forEach((button) => {
   button.addEventListener("click", () => {
     const group = button.closest("#time-options, #word-options");
@@ -601,10 +1100,52 @@ els.input.addEventListener("keydown", handleKeydown);
   els.panel.addEventListener(eventName, (event) => event.preventDefault());
 });
 els.panel.addEventListener("contextmenu", (event) => event.preventDefault());
-els.panel.addEventListener("click", focusInput);
+els.panel.addEventListener("click", (event) => {
+  if (event.target.closest("button") || state.gameMode === "time-race" && state.finished) return;
+  focusInput();
+});
 document.querySelector("#restart-button").addEventListener("click", resetTest);
 document.querySelector("#results-restart").addEventListener("click", resetTest);
 els.replayButton.addEventListener("click", replaySameText);
+els.scoreForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!state.finished || state.gameMode !== "typing" || !state.scoreSessionReady || state.scoreSaving || state.scoreSaved) return;
+
+  const name = els.scoreName.value.trim();
+  if (!name) {
+    setScoreSaveStatus("Vul je naam in om je score op te slaan.", true);
+    els.scoreName.focus();
+    return;
+  }
+
+  const runId = state.testRunId;
+  state.scoreSaving = true;
+  els.scoreName.disabled = true;
+  els.scoreSaveButton.disabled = true;
+  setScoreSaveStatus("Score opslaan...");
+  try {
+    const response = await fetch("/api/scores", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ ...state.scoreSubmission, name })
+    });
+    const score = await readApiResponse(response);
+    if (runId !== state.testRunId) return;
+    state.scoreSaved = true;
+    state.scoreSessionReady = false;
+    setScoreSaveStatus(`Score opgeslagen: ${Number(score.wpm).toFixed(1)} WPM.`);
+    void loadScores();
+  } catch (error) {
+    if (runId === state.testRunId) {
+      els.scoreName.disabled = false;
+      els.scoreSaveButton.disabled = false;
+      setScoreSaveStatus(`Score opslaan mislukt: ${error.message}`, true);
+    }
+    console.error("Could not save score:", error);
+  } finally {
+    if (runId === state.testRunId) state.scoreSaving = false;
+  }
+});
 const savedFont = localStorage.getItem("trendstype-font");
 if (Object.prototype.hasOwnProperty.call(fontFamilies, savedFont)) {
   els.fontSelect.value = savedFont;
@@ -615,12 +1156,34 @@ els.fontSelect.addEventListener("change", () => setFont(els.fontSelect.value));
 let restartArmed = false;
 let restartTimeout = null;
 document.addEventListener("keydown", (event) => {
+  if (state.gameMode === "time-race") {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      exitTimeRace();
+    }
+    return;
+  }
+  if (state.transitioning) {
+    event.preventDefault();
+    return;
+  }
+  if (state.finished && event.key === "Enter" && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    event.preventDefault();
+    replaySameText();
+    return;
+  }
   if (state.finished && event.key === "Escape") {
+    event.preventDefault();
+    resetTest();
+    return;
+  }
+  if (state.started && event.key === "Escape") {
     event.preventDefault();
     restartArmed = false;
     window.clearTimeout(restartTimeout);
     restartTimeout = null;
     resetTest();
+    els.hint.textContent = "Test afgebroken — typ een letter om opnieuw te beginnen.";
     return;
   }
   if (event.key === "Tab" && !event.shiftKey && els.scoresPanel.hidden && document.activeElement === els.input) {
@@ -650,6 +1213,10 @@ document.addEventListener("keydown", (event) => {
 });
 
 function cancelTestOnFocusLoss() {
+  if (state.gameMode === "time-race" && state.raceCountdownId && !state.finished) {
+    exitTimeRace();
+    return;
+  }
   if (!state.started || state.finished || !els.scoresPanel.hidden) return;
   restartArmed = false;
   window.clearTimeout(restartTimeout);
