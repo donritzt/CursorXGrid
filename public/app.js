@@ -4,7 +4,7 @@ const fontFamilies = {
   inter: '"Inter", "Segoe UI", system-ui, sans-serif',
   system: '"Segoe UI", system-ui, sans-serif',
   mono: '"JetBrains Mono", "Cascadia Code", Consolas, monospace',
-  georgia: 'Georgia, "Times New Roman", serif'
+  georgia: 'Georgia, "Times New Roman", serif',
 };
 
 const state = {
@@ -45,7 +45,7 @@ const state = {
   scoreSessionReady: false,
   scoreSaving: false,
   scoreSaved: false,
-  scoreSubmission: null
+  scoreSubmission: null,
 };
 
 const els = {
@@ -87,7 +87,7 @@ const els = {
   raceRestart: document.querySelector("#race-restart"),
   raceExit: document.querySelector("#race-exit"),
   fontSelect: document.querySelector("#font-select"),
-  toast: document.querySelector("#toast")
+  toast: document.querySelector("#toast"),
 };
 
 function shuffledWords(bank) {
@@ -101,7 +101,10 @@ function shuffledWords(bank) {
 
 function resetTest(options = {}) {
   if (state.transitioning) return;
-  if (!state.finished || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  if (
+    !state.finished ||
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ) {
     applyTestReset(options);
     return;
   }
@@ -144,7 +147,9 @@ function applyTestReset({ words, bestRun = null, isReplay = false } = {}) {
   state.scoreSaved = false;
   state.scoreSubmission = null;
   state.gameMode = "typing";
-  state.words = words ? [...words] : shuffledWords(wordBanks[state.language][state.difficulty]);
+  state.words = words
+    ? [...words]
+    : shuffledWords(wordBanks[state.language][state.difficulty]);
   state.typedWords = [];
   state.wordIndex = 0;
   state.currentInput = "";
@@ -154,7 +159,9 @@ function applyTestReset({ words, bestRun = null, isReplay = false } = {}) {
   state.totalTypedChars = 0;
   state.isReplay = isReplay;
   state.bestRun = bestRun;
-  state.progressSamples = [{ elapsedMs: 0, wordIndex: 0, charIndex: 0, totalTypedChars: 0 }];
+  state.progressSamples = [
+    { elapsedMs: 0, wordIndex: 0, charIndex: 0, totalTypedChars: 0 },
+  ];
   state.startAt = 0;
   state.raceScore = 0;
   state.raceBonusIndex = null;
@@ -164,12 +171,21 @@ function applyTestReset({ words, bestRun = null, isReplay = false } = {}) {
   state.raceBonuses = 0;
   state.raceCountdownValue = 3;
   state.renderedLineIndex = null;
-  setTimer(state.mode === "time" ? String(state.value) : `0/${state.value}`, false);
+  setTimer(
+    state.mode === "time" ? String(state.value) : `0/${state.value}`,
+    false,
+  );
   els.liveWpm.textContent = "0";
   els.progressLabel.textContent = state.mode === "time" ? "tijd" : "woorden";
   els.hint.textContent = "";
   els.input.value = "";
-  document.body.classList.remove("test-running", "test-finished", "time-race", "time-race-countdown", "time-race-finished");
+  document.body.classList.remove(
+    "test-running",
+    "test-finished",
+    "time-race",
+    "time-race-countdown",
+    "time-race-finished",
+  );
   els.results.hidden = true;
   els.scoreForm.hidden = true;
   els.scoreForm.reset();
@@ -197,7 +213,9 @@ function layoutWords() {
   const context = canvas.getContext("2d");
   context.font = `${fontWeight} ${fontSize} ${fontFamily}`;
   const maxWidth = Math.max(100, els.words.clientWidth);
-  const wordGap = Number.parseFloat(fontSize) * (window.matchMedia("(max-width: 640px)").matches ? 0.52 : 0.68);
+  const wordGap =
+    Number.parseFloat(fontSize) *
+    (window.matchMedia("(max-width: 640px)").matches ? 0.52 : 0.68);
   const lines = [];
   const wordLineIndexes = new Array(state.words.length);
   let line = [];
@@ -225,9 +243,15 @@ function layoutWords() {
 
 function renderWords() {
   const fragment = document.createDocumentFragment();
-  const activeLineIndex = state.wordLineIndexes[state.wordIndex] ?? state.lines.length - 1;
-  const lineChanged = state.renderedLineIndex !== null && activeLineIndex !== state.renderedLineIndex;
-  const firstLine = Math.max(0, Math.min(activeLineIndex - 1, state.lines.length - 3));
+  const activeLineIndex =
+    state.wordLineIndexes[state.wordIndex] ?? state.lines.length - 1;
+  const lineChanged =
+    state.renderedLineIndex !== null &&
+    activeLineIndex !== state.renderedLineIndex;
+  const firstLine = Math.max(
+    0,
+    Math.min(activeLineIndex - 1, state.lines.length - 3),
+  );
   const lastLine = Math.min(state.lines.length, firstLine + 3);
 
   for (let lineIndex = firstLine; lineIndex < lastLine; lineIndex += 1) {
@@ -237,15 +261,23 @@ function renderWords() {
       lineElement.classList.add("is-current");
       if (lineChanged) lineElement.classList.add("line-enter");
     } else {
-      lineElement.classList.add(lineIndex < activeLineIndex ? "is-previous" : "is-next");
+      lineElement.classList.add(
+        lineIndex < activeLineIndex ? "is-previous" : "is-next",
+      );
     }
 
     for (const wordIndex of state.lines[lineIndex]) {
       const target = state.words[wordIndex];
-      const typed = wordIndex === state.wordIndex ? state.currentInput : (state.typedWords[wordIndex] || "");
+      const typed =
+        wordIndex === state.wordIndex
+          ? state.currentInput
+          : state.typedWords[wordIndex] || "";
       const wordElement = document.createElement("span");
       wordElement.className = "word";
-      if (state.gameMode === "time-race" && wordIndex === state.raceBonusIndex) {
+      if (
+        state.gameMode === "time-race" &&
+        wordIndex === state.raceBonusIndex
+      ) {
         wordElement.classList.add("bonus-word");
       }
       wordElement.dataset.wordIndex = String(wordIndex);
@@ -255,16 +287,25 @@ function renderWords() {
         character.className = "letter";
         character.textContent = target[charIndex];
         if (typed[charIndex] !== undefined) {
-          character.classList.add(typed[charIndex] === target[charIndex] ? "correct" : "incorrect");
+          character.classList.add(
+            typed[charIndex] === target[charIndex] ? "correct" : "incorrect",
+          );
         }
-        if (wordIndex === state.wordIndex && charIndex === state.currentInput.length) {
+        if (
+          wordIndex === state.wordIndex &&
+          charIndex === state.currentInput.length
+        ) {
           character.classList.add("current");
         }
         wordElement.append(character);
       }
 
       if (wordIndex === state.wordIndex) {
-        for (let charIndex = target.length; charIndex < state.currentInput.length; charIndex += 1) {
+        for (
+          let charIndex = target.length;
+          charIndex < state.currentInput.length;
+          charIndex += 1
+        ) {
           const extra = document.createElement("span");
           extra.className = "extra-letter";
           extra.textContent = state.currentInput[charIndex];
@@ -286,7 +327,12 @@ function positionCaret() {
   positionCaretAt(els.caret, state.wordIndex, state.currentInput.length);
 }
 
-function positionCaretAt(caret, wordIndex, charIndex, word = els.words.querySelector(`[data-word-index="${wordIndex}"]`)) {
+function positionCaretAt(
+  caret,
+  wordIndex,
+  charIndex,
+  word = els.words.querySelector(`[data-word-index="${wordIndex}"]`),
+) {
   if (!word) {
     caret.hidden = true;
     return;
@@ -308,7 +354,9 @@ function positionCaretAt(caret, wordIndex, charIndex, word = els.words.querySele
 }
 
 function updateWordAfterTyping() {
-  const word = els.words.querySelector(`[data-word-index="${state.wordIndex}"]`);
+  const word = els.words.querySelector(
+    `[data-word-index="${state.wordIndex}"]`,
+  );
   if (!word) {
     renderWords();
     return;
@@ -319,7 +367,11 @@ function updateWordAfterTyping() {
   if (charIndex < target.length) {
     const letter = word.children[charIndex];
     letter.classList.remove("current");
-    letter.classList.add(state.currentInput[charIndex] === target[charIndex] ? "correct" : "incorrect");
+    letter.classList.add(
+      state.currentInput[charIndex] === target[charIndex]
+        ? "correct"
+        : "incorrect",
+    );
   } else {
     const extra = document.createElement("span");
     extra.className = "extra-letter";
@@ -334,7 +386,9 @@ function updateWordAfterTyping() {
 }
 
 function updateWordAfterBackspace() {
-  const word = els.words.querySelector(`[data-word-index="${state.wordIndex}"]`);
+  const word = els.words.querySelector(
+    `[data-word-index="${state.wordIndex}"]`,
+  );
   if (!word) {
     renderWords();
     return;
@@ -353,7 +407,8 @@ function updateWordAfterBackspace() {
 }
 
 function getGhostProgress() {
-  if (!state.isReplay || !state.bestRun || state.bestRun.trace.length === 0) return null;
+  if (!state.isReplay || !state.bestRun || state.bestRun.trace.length === 0)
+    return null;
   const elapsedMs = state.started ? performance.now() - state.startAt : 0;
   let progress = state.bestRun.trace[0];
   for (const sample of state.bestRun.trace) {
@@ -373,7 +428,8 @@ function updateGhostProgress() {
   els.words.querySelectorAll(".word").forEach((word) => {
     const wordIndex = Number(word.dataset.wordIndex);
     word.querySelectorAll(".letter").forEach((letter, charIndex) => {
-      const passed = wordIndex < progress.wordIndex ||
+      const passed =
+        wordIndex < progress.wordIndex ||
         (wordIndex === progress.wordIndex && charIndex < progress.charIndex);
       letter.classList.toggle("ghost-progress", passed);
     });
@@ -411,14 +467,20 @@ function positionGhostCaret(progress) {
 function recordProgress(force = false) {
   const last = state.progressSamples[state.progressSamples.length - 1];
   const charIndex = state.currentInput.length;
-  if (!force && last && last.wordIndex === state.wordIndex && last.charIndex === charIndex) return;
+  if (
+    !force &&
+    last &&
+    last.wordIndex === state.wordIndex &&
+    last.charIndex === charIndex
+  )
+    return;
 
   const elapsedMs = state.started ? performance.now() - state.startAt : 0;
   state.progressSamples.push({
     elapsedMs: Math.max(last ? last.elapsedMs : 0, elapsedMs),
     wordIndex: state.wordIndex,
     charIndex,
-    totalTypedChars: state.totalTypedChars
+    totalTypedChars: state.totalTypedChars,
   });
 }
 
@@ -463,8 +525,11 @@ async function openScoreSession(runId) {
   try {
     const response = await fetch("/api/sessions", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ mode: `${state.mode}:${state.value}` })
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ mode: `${state.mode}:${state.value}` }),
     });
     const payload = await readApiResponse(response);
     if (runId !== state.testRunId) return null;
@@ -474,7 +539,10 @@ async function openScoreSession(runId) {
     return payload.sessionId;
   } catch (error) {
     if (runId === state.testRunId) {
-      setScoreSaveStatus(`Score opslaan niet beschikbaar: ${error.message}`, true);
+      setScoreSaveStatus(
+        `Score opslaan niet beschikbaar: ${error.message}`,
+        true,
+      );
     }
     console.error("Could not start score session:", error);
     return null;
@@ -487,8 +555,11 @@ async function prepareScoreSubmission(runId, correctChars, incorrectChars) {
     if (runId !== state.testRunId || !sessionId) return;
     const response = await fetch("/api/sessions/finish", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ sessionId })
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ sessionId }),
     });
     await readApiResponse(response);
     if (runId !== state.testRunId) return;
@@ -501,14 +572,17 @@ async function prepareScoreSubmission(runId, correctChars, incorrectChars) {
       sessionId,
       mode: `${state.mode}:${state.value}`,
       correctChars,
-      incorrectChars
+      incorrectChars,
     };
     state.scoreSessionReady = true;
     els.scoreSaveButton.disabled = false;
     setScoreSaveStatus("Vul je naam in om je score op te slaan.");
   } catch (error) {
     if (runId === state.testRunId) {
-      setScoreSaveStatus(`Score opslaan niet beschikbaar: ${error.message}`, true);
+      setScoreSaveStatus(
+        `Score opslaan niet beschikbaar: ${error.message}`,
+        true,
+      );
     }
     console.error("Could not finish score session:", error);
   }
@@ -522,7 +596,10 @@ function beginTest() {
   state.sessionPromise = openScoreSession(runId);
   document.body.classList.add("test-running");
   layoutWords();
-  els.hint.textContent = state.mode === "time" ? "Typ door tot de timer op nul staat" : `${state.value} woorden`;
+  els.hint.textContent =
+    state.mode === "time"
+      ? "Typ door tot de timer op nul staat"
+      : `${state.value} woorden`;
   state.liveTimerId = window.setInterval(updateLiveWpm, 250);
   if (state.mode === "time") {
     state.timerId = window.setInterval(updateCountdown, 50);
@@ -532,8 +609,11 @@ function beginTest() {
 function updateLiveWpm() {
   if (!state.started || state.finished) return;
   const { correctChars } = countCharacters();
-  const elapsedMinutes = Math.max(1000, performance.now() - state.startAt) / 60000;
-  els.liveWpm.textContent = String(Math.round(correctChars / 5 / elapsedMinutes));
+  const elapsedMinutes =
+    Math.max(1000, performance.now() - state.startAt) / 60000;
+  els.liveWpm.textContent = String(
+    Math.round(correctChars / 5 / elapsedMinutes),
+  );
   updateGhostProgress();
 }
 
@@ -554,7 +634,9 @@ function startTimeRace() {
   state.finished = false;
   applyTestReset();
   state.gameMode = "time-race";
-  state.words = shuffledWords(wordBanks[state.language][state.difficulty]).slice(0, 200);
+  state.words = shuffledWords(
+    wordBanks[state.language][state.difficulty],
+  ).slice(0, 200);
   state.raceWordsUntilBonus = randomInt(3, 5);
   state.raceTimeRemaining = 10000;
   state.raceScore = 0;
@@ -574,7 +656,10 @@ function startTimeRace() {
   els.raceGameOver.hidden = true;
   els.input.disabled = true;
   document.body.classList.add("time-race", "time-race-countdown");
-  state.raceCountdownId = window.setInterval(updateTimeRaceStartCountdown, 1000);
+  state.raceCountdownId = window.setInterval(
+    updateTimeRaceStartCountdown,
+    1000,
+  );
 }
 
 function updateTimeRaceStartCountdown() {
@@ -608,9 +693,13 @@ function beginTimeRace() {
 }
 
 function updateTimeRaceCountdown() {
-  if (!state.started || state.finished || state.gameMode !== "time-race") return;
+  if (!state.started || state.finished || state.gameMode !== "time-race")
+    return;
   const now = performance.now();
-  state.raceTimeRemaining = Math.max(0, state.raceTimeRemaining - (now - state.raceLastTick));
+  state.raceTimeRemaining = Math.max(
+    0,
+    state.raceTimeRemaining - (now - state.raceLastTick),
+  );
   state.raceLastTick = now;
   setTimer((state.raceTimeRemaining / 1000).toFixed(1), false);
   if (state.raceTimeRemaining <= 0) finishTimeRace();
@@ -645,7 +734,12 @@ function handleTimeRaceKeydown(event) {
     els.raceScore.textContent = String(state.raceScore);
 
     if (state.wordIndex >= state.words.length - 10) {
-      state.words.push(...shuffledWords(wordBanks[state.language][state.difficulty]).slice(0, 50));
+      state.words.push(
+        ...shuffledWords(wordBanks[state.language][state.difficulty]).slice(
+          0,
+          50,
+        ),
+      );
       layoutWords();
     }
 
@@ -710,7 +804,10 @@ function countCharacters() {
   let correctChars = 0;
   let incorrectChars = 0;
   for (let index = 0; index <= state.wordIndex; index += 1) {
-    const typed = index === state.wordIndex ? state.currentInput : (state.typedWords[index] || "");
+    const typed =
+      index === state.wordIndex
+        ? state.currentInput
+        : state.typedWords[index] || "";
     const target = state.words[index];
     for (let charIndex = 0; charIndex < typed.length; charIndex += 1) {
       if (typed[charIndex] === target[charIndex]) correctChars += 1;
@@ -733,24 +830,38 @@ function getSpeedSamples(trace, elapsedMs) {
   let startIndex = 0;
   return sampleTimes.map((sampleTime) => {
     const windowStart = Math.max(0, sampleTime - 1000);
-    while (endIndex + 1 < trace.length && trace[endIndex + 1].elapsedMs <= sampleTime) endIndex += 1;
-    while (startIndex + 1 < trace.length && trace[startIndex + 1].elapsedMs <= windowStart) startIndex += 1;
+    while (
+      endIndex + 1 < trace.length &&
+      trace[endIndex + 1].elapsedMs <= sampleTime
+    )
+      endIndex += 1;
+    while (
+      startIndex + 1 < trace.length &&
+      trace[startIndex + 1].elapsedMs <= windowStart
+    )
+      startIndex += 1;
 
     const endChars = trace[endIndex]?.totalTypedChars || 0;
     const startChars = trace[startIndex]?.totalTypedChars || 0;
     const windowMs = Math.min(1000, sampleTime);
     return {
       elapsedMs: sampleTime,
-      rawWpm: ((endChars - startChars) * 60000) / (5 * windowMs)
+      rawWpm: ((endChars - startChars) * 60000) / (5 * windowMs),
     };
   });
 }
 
 function calculateConsistency(samples) {
-  const average = samples.reduce((total, sample) => total + sample.rawWpm, 0) / samples.length;
+  const average =
+    samples.reduce((total, sample) => total + sample.rawWpm, 0) /
+    samples.length;
   if (!Number.isFinite(average) || average <= 0) return 0;
 
-  const variance = samples.reduce((total, sample) => total + (sample.rawWpm - average) ** 2, 0) / samples.length;
+  const variance =
+    samples.reduce(
+      (total, sample) => total + (sample.rawWpm - average) ** 2,
+      0,
+    ) / samples.length;
   const variation = Math.sqrt(variance) / average;
   return Math.round(Math.max(0, Math.min(100, (1 - variation) * 100)));
 }
@@ -771,8 +882,13 @@ function renderResultsChart(samples, elapsedMs) {
   const peakWpm = Math.max(20, ...samples.map((sample) => sample.rawWpm));
   const maxWpm = Math.ceil(peakWpm / 20) * 20;
   const createElement = (name, attributes, text) => {
-    const element = document.createElementNS("http://www.w3.org/2000/svg", name);
-    Object.entries(attributes).forEach(([attribute, value]) => element.setAttribute(attribute, String(value)));
+    const element = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      name,
+    );
+    Object.entries(attributes).forEach(([attribute, value]) =>
+      element.setAttribute(attribute, String(value)),
+    );
     if (text !== undefined) element.textContent = text;
     return element;
   };
@@ -782,25 +898,55 @@ function renderResultsChart(samples, elapsedMs) {
   [0, maxWpm / 2, maxWpm].forEach((wpm) => {
     const y = getY(wpm);
     svg.append(
-      createElement("line", { x1: padding.left, y1: y, x2: width - padding.right, y2: y, class: "chart-grid-line" }),
-      createElement("text", { x: padding.left - 8, y: y + 4, class: "chart-axis-label", "text-anchor": "end" }, String(Math.round(wpm)))
+      createElement("line", {
+        x1: padding.left,
+        y1: y,
+        x2: width - padding.right,
+        y2: y,
+        class: "chart-grid-line",
+      }),
+      createElement(
+        "text",
+        {
+          x: padding.left - 8,
+          y: y + 4,
+          class: "chart-axis-label",
+          "text-anchor": "end",
+        },
+        String(Math.round(wpm)),
+      ),
     );
   });
 
   const points = [{ elapsedMs: 0, rawWpm: 0 }, ...samples];
-  const pointList = points.map((sample) => `${getX(sample.elapsedMs)},${getY(sample.rawWpm)}`);
-  const linePath = pointList.map((point, index) => `${index === 0 ? "M" : "L"}${point}`).join(" ");
+  const pointList = points.map(
+    (sample) => `${getX(sample.elapsedMs)},${getY(sample.rawWpm)}`,
+  );
+  const linePath = pointList
+    .map((point, index) => `${index === 0 ? "M" : "L"}${point}`)
+    .join(" ");
   svg.append(createElement("path", { d: linePath, class: "chart-line" }));
 
   const durationSeconds = elapsedMs / 1000;
   [0, durationSeconds / 2, durationSeconds].forEach((seconds) => {
     const x = getX(seconds * 1000);
-    svg.append(createElement("text", {
-      x,
-      y: height - 5,
-      class: "chart-axis-label",
-      "text-anchor": seconds === 0 ? "start" : seconds === durationSeconds ? "end" : "middle"
-    }, `${seconds.toFixed(seconds % 1 ? 1 : 0)}s`));
+    svg.append(
+      createElement(
+        "text",
+        {
+          x,
+          y: height - 5,
+          class: "chart-axis-label",
+          "text-anchor":
+            seconds === 0
+              ? "start"
+              : seconds === durationSeconds
+                ? "end"
+                : "middle",
+        },
+        `${seconds.toFixed(seconds % 1 ? 1 : 0)}s`,
+      ),
+    );
   });
 }
 
@@ -827,19 +973,25 @@ function finishTest() {
     state.bestRun = {
       words: [...state.words],
       wpm,
-      trace: [...state.progressSamples]
+      trace: [...state.progressSamples],
     };
   }
   els.resultWpm.textContent = String(wpm);
   els.resultRawWpm.textContent = String(rawWpm);
   els.resultAccuracy.textContent = `${accuracy.toFixed(1)}%`;
-  els.resultErrors.textContent = Number.isInteger(errors) ? String(errors) : errors.toFixed(1);
+  els.resultErrors.textContent = Number.isInteger(errors)
+    ? String(errors)
+    : errors.toFixed(1);
   els.resultConsistency.textContent = `${consistency}%`;
   els.results.hidden = false;
   els.scoreForm.hidden = false;
   els.scoreSaveButton.disabled = true;
   setScoreSaveStatus("Score wordt gecontroleerd...");
-  void prepareScoreSubmission(runId, correctChars, Math.max(0, state.totalTypedChars - correctChars));
+  void prepareScoreSubmission(
+    runId,
+    correctChars,
+    Math.max(0, state.totalTypedChars - correctChars),
+  );
   els.input.disabled = true;
   els.input.blur();
   document.body.classList.remove("test-running");
@@ -863,7 +1015,10 @@ function handleKeydown(event) {
     if (!state.started) return;
     if (state.currentInput.length > 0) {
       const charIndex = state.currentInput.length - 1;
-      if (state.currentInput[charIndex] !== state.words[state.wordIndex][charIndex]) {
+      if (
+        state.currentInput[charIndex] !==
+        state.words[state.wordIndex][charIndex]
+      ) {
         state.correctedErrors += 1;
       }
       state.currentInput = state.currentInput.slice(0, -1);
@@ -899,7 +1054,10 @@ function handleKeydown(event) {
     if (state.mode === "words") {
       setTimer(`${Math.min(state.wordIndex, state.value)}/${state.value}`);
     }
-    if (state.wordIndex >= state.words.length || (state.mode === "words" && state.wordIndex >= state.value)) {
+    if (
+      state.wordIndex >= state.words.length ||
+      (state.mode === "words" && state.wordIndex >= state.value)
+    ) {
       finishTest();
       return;
     }
@@ -922,7 +1080,7 @@ function replaySameText() {
   resetTest({
     words: state.bestRun.words,
     bestRun: state.bestRun,
-    isReplay: true
+    isReplay: true,
   });
 }
 
@@ -941,19 +1099,23 @@ window.addEventListener("resize", () => {
 
 async function loadScores() {
   try {
-    const response = await fetch("/api/scores", { headers: { Accept: "application/json" } });
+    const response = await fetch("/api/scores", {
+      headers: { Accept: "application/json" },
+    });
     if (!response.ok) throw new Error("Scores konden niet worden opgehaald.");
     const scores = await response.json();
     renderScores(scores);
   } catch (error) {
-    els.scoreList.innerHTML = '<tr><td class="empty-state" colspan="5">Scoreboard tijdelijk niet beschikbaar</td></tr>';
+    els.scoreList.innerHTML =
+      '<tr><td class="empty-state" colspan="5">Scoreboard tijdelijk niet beschikbaar</td></tr>';
     console.error(error);
   }
 }
 
 function renderScores(scores) {
   if (scores.length === 0) {
-    els.scoreList.innerHTML = '<tr><td class="empty-state" colspan="5">Nog geen scores — wees de eerste!</td></tr>';
+    els.scoreList.innerHTML =
+      '<tr><td class="empty-state" colspan="5">Nog geen scores — wees de eerste!</td></tr>';
     return;
   }
   const fragment = document.createDocumentFragment();
@@ -964,7 +1126,7 @@ function renderScores(scores) {
       { text: score.name },
       { text: Number(score.wpm).toFixed(1) },
       { text: `${Number(score.accuracy).toFixed(1)}%` },
-      { text: score.mode }
+      { text: score.mode },
     ];
     for (const value of values) {
       const cell = document.createElement("td");
@@ -982,7 +1144,10 @@ function showToast(message) {
   els.toast.textContent = message;
   els.toast.classList.add("visible");
   clearTimeout(toastTimeout);
-  toastTimeout = window.setTimeout(() => els.toast.classList.remove("visible"), 2400);
+  toastTimeout = window.setTimeout(
+    () => els.toast.classList.remove("visible"),
+    2400,
+  );
 }
 
 const navMenu = document.querySelector(".nav-menu");
@@ -995,7 +1160,9 @@ function setNavMenuOpen(open) {
   navMenuItems.setAttribute("aria-hidden", String(!open));
 }
 
-navMenuToggle.addEventListener("click", () => setNavMenuOpen(!navMenu.classList.contains("open")));
+navMenuToggle.addEventListener("click", () =>
+  setNavMenuOpen(!navMenu.classList.contains("open")),
+);
 navMenuToggle.addEventListener("keydown", (event) => {
   if (event.key === "ArrowDown") {
     event.preventDefault();
@@ -1020,9 +1187,11 @@ function activateTab(tabName) {
     tab.classList.toggle("active", active);
     tab.setAttribute("aria-selected", String(active));
     tab.tabIndex = active ? 0 : -1;
-    document.querySelector(`#${tab.getAttribute("aria-controls")}`).hidden = !active;
+    document.querySelector(`#${tab.getAttribute("aria-controls")}`).hidden =
+      !active;
   });
-  document.querySelector("#current-tab-label").textContent = tabName === "scores" ? "Scores" : "Typetest";
+  document.querySelector("#current-tab-label").textContent =
+    tabName === "scores" ? "Scores" : "Typetest";
   if (tabName === "scores") loadScores();
 }
 
@@ -1034,11 +1203,23 @@ document.querySelectorAll(".main-tab").forEach((tab) => {
     else navMenuToggle.focus();
   });
   tab.addEventListener("keydown", (event) => {
-    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight" && event.key !== "Home" && event.key !== "End") return;
+    if (
+      event.key !== "ArrowLeft" &&
+      event.key !== "ArrowRight" &&
+      event.key !== "Home" &&
+      event.key !== "End"
+    )
+      return;
     event.preventDefault();
     const tabs = [...document.querySelectorAll(".main-tab")];
     const index = tabs.indexOf(tab);
-    const nextIndex = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length;
+    const nextIndex =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? tabs.length - 1
+          : (index + (event.key === "ArrowRight" ? 1 : tabs.length - 1)) %
+            tabs.length;
     tabs[nextIndex].focus();
     activateTab(tabs[nextIndex].dataset.tab);
   });
@@ -1052,11 +1233,20 @@ document.querySelectorAll(".mode-button").forEach((button) => {
     els.timeOptions.classList.toggle("hidden", state.mode !== "time");
     els.wordOptions.classList.toggle("hidden", state.mode !== "words");
     document.querySelectorAll(".value-button").forEach((option) => {
-      option.classList.toggle("active", option.closest("#time-options, #word-options") === (state.mode === "time" ? els.timeOptions : els.wordOptions) && Number(option.dataset.value) === state.value);
+      option.classList.toggle(
+        "active",
+        option.closest("#time-options, #word-options") ===
+          (state.mode === "time" ? els.timeOptions : els.wordOptions) &&
+          Number(option.dataset.value) === state.value,
+      );
     });
-    const activeOption = (state.mode === "time" ? els.timeOptions : els.wordOptions).querySelector(".value-button.active");
+    const activeOption = (
+      state.mode === "time" ? els.timeOptions : els.wordOptions
+    ).querySelector(".value-button.active");
     if (!activeOption) {
-      const firstOption = (state.mode === "time" ? els.timeOptions : els.wordOptions).querySelector(".value-button");
+      const firstOption = (
+        state.mode === "time" ? els.timeOptions : els.wordOptions
+      ).querySelector(".value-button");
       firstOption.classList.add("active");
       state.value = Number(firstOption.dataset.value);
     }
@@ -1101,7 +1291,11 @@ els.input.addEventListener("keydown", handleKeydown);
 });
 els.panel.addEventListener("contextmenu", (event) => event.preventDefault());
 els.panel.addEventListener("click", (event) => {
-  if (event.target.closest("button") || state.gameMode === "time-race" && state.finished) return;
+  if (
+    event.target.closest("button") ||
+    (state.gameMode === "time-race" && state.finished)
+  )
+    return;
   focusInput();
 });
 document.querySelector("#restart-button").addEventListener("click", resetTest);
@@ -1109,7 +1303,14 @@ document.querySelector("#results-restart").addEventListener("click", resetTest);
 els.replayButton.addEventListener("click", replaySameText);
 els.scoreForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (!state.finished || state.gameMode !== "typing" || !state.scoreSessionReady || state.scoreSaving || state.scoreSaved) return;
+  if (
+    !state.finished ||
+    state.gameMode !== "typing" ||
+    !state.scoreSessionReady ||
+    state.scoreSaving ||
+    state.scoreSaved
+  )
+    return;
 
   const name = els.scoreName.value.trim();
   if (!name) {
@@ -1126,14 +1327,19 @@ els.scoreForm.addEventListener("submit", async (event) => {
   try {
     const response = await fetch("/api/scores", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ ...state.scoreSubmission, name })
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ ...state.scoreSubmission, name }),
     });
     const score = await readApiResponse(response);
     if (runId !== state.testRunId) return;
     state.scoreSaved = true;
     state.scoreSessionReady = false;
-    setScoreSaveStatus(`Score opgeslagen: ${Number(score.wpm).toFixed(1)} WPM.`);
+    setScoreSaveStatus(
+      `Score opgeslagen: ${Number(score.wpm).toFixed(1)} WPM.`,
+    );
     void loadScores();
   } catch (error) {
     if (runId === state.testRunId) {
@@ -1150,7 +1356,10 @@ const savedFont = localStorage.getItem("trendstype-font");
 if (Object.prototype.hasOwnProperty.call(fontFamilies, savedFont)) {
   els.fontSelect.value = savedFont;
 }
-document.documentElement.style.setProperty("--font", fontFamilies[els.fontSelect.value]);
+document.documentElement.style.setProperty(
+  "--font",
+  fontFamilies[els.fontSelect.value],
+);
 els.fontSelect.addEventListener("change", () => setFont(els.fontSelect.value));
 
 let restartArmed = false;
@@ -1167,7 +1376,13 @@ document.addEventListener("keydown", (event) => {
     event.preventDefault();
     return;
   }
-  if (state.finished && event.key === "Enter" && !event.ctrlKey && !event.metaKey && !event.altKey) {
+  if (
+    state.finished &&
+    event.key === "Enter" &&
+    !event.ctrlKey &&
+    !event.metaKey &&
+    !event.altKey
+  ) {
     event.preventDefault();
     replaySameText();
     return;
@@ -1183,10 +1398,16 @@ document.addEventListener("keydown", (event) => {
     window.clearTimeout(restartTimeout);
     restartTimeout = null;
     resetTest();
-    els.hint.textContent = "Test afgebroken — typ een letter om opnieuw te beginnen.";
+    els.hint.textContent =
+      "Test afgebroken — typ een letter om opnieuw te beginnen.";
     return;
   }
-  if (event.key === "Tab" && !event.shiftKey && els.scoresPanel.hidden && document.activeElement === els.input) {
+  if (
+    event.key === "Tab" &&
+    !event.shiftKey &&
+    els.scoresPanel.hidden &&
+    document.activeElement === els.input
+  ) {
     event.preventDefault();
     restartArmed = true;
     window.clearTimeout(restartTimeout);
@@ -1213,7 +1434,11 @@ document.addEventListener("keydown", (event) => {
 });
 
 function cancelTestOnFocusLoss() {
-  if (state.gameMode === "time-race" && state.raceCountdownId && !state.finished) {
+  if (
+    state.gameMode === "time-race" &&
+    state.raceCountdownId &&
+    !state.finished
+  ) {
     exitTimeRace();
     return;
   }
@@ -1222,7 +1447,8 @@ function cancelTestOnFocusLoss() {
   window.clearTimeout(restartTimeout);
   restartTimeout = null;
   resetTest();
-  els.hint.textContent = "Test gestopt: je hebt het tabblad verlaten. Start opnieuw.";
+  els.hint.textContent =
+    "Test gestopt: je hebt het tabblad verlaten. Start opnieuw.";
 }
 
 document.addEventListener("visibilitychange", () => {

@@ -10,16 +10,29 @@ const PORT = Number(process.env.PORT) || 3000;
 const HOST = process.env.HOST || "127.0.0.1";
 const DATA_DIRECTORY = path.join(__dirname, "data");
 const SCORES_FILE = path.join(DATA_DIRECTORY, "scores.json");
-const SUPABASE_URL = (process.env.SUPABASE_URL || "").trim().replace(/\/+$/, "");
-const SUPABASE_SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+const SUPABASE_URL = (process.env.SUPABASE_URL || "")
+  .trim()
+  .replace(/\/+$/, "");
+const SUPABASE_SERVICE_ROLE_KEY = (
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+).trim();
 const SUPABASE_ENABLED = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
 const MAX_WPM = 250;
 const SESSION_TTL_MS = 30 * 60 * 1000;
-const VALID_MODES = new Set(["time:15", "time:30", "time:60", "words:10", "words:25", "words:50"]);
+const VALID_MODES = new Set([
+  "time:15",
+  "time:30",
+  "time:60",
+  "words:10",
+  "words:25",
+  "words:50",
+]);
 const sessions = new Map();
 
 if (Boolean(SUPABASE_URL) !== Boolean(SUPABASE_SERVICE_ROLE_KEY)) {
-  throw new Error("Set both SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY, or leave both empty to use local JSON storage.");
+  throw new Error(
+    "Set both SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY, or leave both empty to use local JSON storage.",
+  );
 }
 
 fs.mkdirSync(DATA_DIRECTORY, { recursive: true });
@@ -47,7 +60,11 @@ function readLocalScores() {
 
 function writeScores(scores) {
   const temporaryFile = `${SCORES_FILE}.${process.pid}.tmp`;
-  fs.writeFileSync(temporaryFile, `${JSON.stringify(scores, null, 2)}\n`, "utf8");
+  fs.writeFileSync(
+    temporaryFile,
+    `${JSON.stringify(scores, null, 2)}\n`,
+    "utf8",
+  );
   fs.renameSync(temporaryFile, SCORES_FILE);
 }
 
@@ -58,8 +75,8 @@ async function supabaseRequest(endpoint, options = {}) {
       apikey: SUPABASE_SERVICE_ROLE_KEY,
       Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
       "Content-Type": "application/json",
-      ...options.headers
-    }
+      ...options.headers,
+    },
   });
   if (!response.ok) {
     const details = (await response.text()).slice(0, 500);
@@ -76,7 +93,7 @@ async function readScores() {
   }
 
   const response = await supabaseRequest(
-    "scores?select=id,name,wpm,raw_wpm,accuracy,errors,mode,created_at&order=wpm.desc,created_at.asc&limit=20"
+    "scores?select=id,name,wpm,raw_wpm,accuracy,errors,mode,created_at&order=wpm.desc,created_at.asc&limit=20",
   );
   const rows = await response.json();
   if (!Array.isArray(rows)) {
@@ -90,7 +107,7 @@ async function readScores() {
     accuracy: Number(row.accuracy),
     errors: Number(row.errors),
     mode: row.mode,
-    createdAt: row.created_at
+    createdAt: row.created_at,
   }));
 }
 
@@ -98,7 +115,9 @@ async function saveScore(score) {
   if (!SUPABASE_ENABLED) {
     const scores = readLocalScores();
     scores.push(score);
-    scores.sort((a, b) => b.wpm - a.wpm || a.createdAt.localeCompare(b.createdAt));
+    scores.sort(
+      (a, b) => b.wpm - a.wpm || a.createdAt.localeCompare(b.createdAt),
+    );
     writeScores(scores.slice(0, 1000));
     return;
   }
@@ -114,8 +133,8 @@ async function saveScore(score) {
       accuracy: score.accuracy,
       errors: score.errors,
       mode: score.mode,
-      created_at: score.createdAt
-    })
+      created_at: score.createdAt,
+    }),
   });
 }
 
@@ -126,16 +145,18 @@ async function migrateLocalScores() {
   await supabaseRequest("scores?on_conflict=id", {
     method: "POST",
     headers: { Prefer: "resolution=ignore-duplicates,return=minimal" },
-    body: JSON.stringify(scores.map((score) => ({
-      id: score.id,
-      name: score.name,
-      wpm: score.wpm,
-      raw_wpm: score.rawWpm,
-      accuracy: score.accuracy,
-      errors: score.errors,
-      mode: score.mode,
-      created_at: score.createdAt
-    })))
+    body: JSON.stringify(
+      scores.map((score) => ({
+        id: score.id,
+        name: score.name,
+        wpm: score.wpm,
+        raw_wpm: score.rawWpm,
+        accuracy: score.accuracy,
+        errors: score.errors,
+        mode: score.mode,
+        created_at: score.createdAt,
+      })),
+    ),
   });
   return scores.length;
 }
@@ -159,9 +180,7 @@ function isNonNegativeInteger(value) {
 }
 
 function minimumDuration(mode) {
-  return mode.type === "time"
-    ? Math.max(1000, mode.value * 1000 - 1200)
-    : 1000;
+  return mode.type === "time" ? Math.max(1000, mode.value * 1000 - 1200) : 1000;
 }
 
 app.get("/api/scores", async (req, res, next) => {
@@ -189,11 +208,16 @@ app.post("/api/sessions", (req, res) => {
 });
 
 app.post("/api/sessions/finish", (req, res) => {
-  const sessionId = typeof (req.body && req.body.sessionId) === "string" ? req.body.sessionId : "";
+  const sessionId =
+    typeof (req.body && req.body.sessionId) === "string"
+      ? req.body.sessionId
+      : "";
   const session = sessions.get(sessionId);
   if (!session || Date.now() - session.startedAt > SESSION_TTL_MS) {
     sessions.delete(sessionId);
-    return res.status(400).json({ error: "Deze test is verlopen. Start een nieuwe test." });
+    return res
+      .status(400)
+      .json({ error: "Deze test is verlopen. Start een nieuwe test." });
   }
   if (session.finishedAt) {
     return res.status(409).json({ error: "Deze test is al afgerond." });
@@ -216,27 +240,44 @@ app.post("/api/scores", async (req, res, next) => {
     const session = sessions.get(sessionId);
     if (!session || Date.now() - session.startedAt > SESSION_TTL_MS) {
       sessions.delete(sessionId);
-      return res.status(400).json({ error: "Deze test is verlopen of al opgeslagen. Start een nieuwe test." });
+      return res.status(400).json({
+        error: "Deze test is verlopen of al opgeslagen. Start een nieuwe test.",
+      });
     }
 
     const mode = parseMode(body.mode);
-    if (!mode || mode.type !== session.mode.type || mode.value !== session.mode.value) {
-      return res.status(400).json({ error: "De testmodus komt niet overeen met de gestarte test." });
+    if (
+      !mode ||
+      mode.type !== session.mode.type ||
+      mode.value !== session.mode.value
+    ) {
+      return res.status(400).json({
+        error: "De testmodus komt niet overeen met de gestarte test.",
+      });
     }
     if (!session.finishedAt) {
-      return res.status(400).json({ error: "Rond eerst de test af voordat je de score opslaat." });
+      return res
+        .status(400)
+        .json({ error: "Rond eerst de test af voordat je de score opslaat." });
     }
 
     const name = cleanName(body.name);
     const correctChars = body.correctChars;
     const incorrectChars = body.incorrectChars;
     if (!name) return res.status(400).json({ error: "Vul je naam in." });
-    if (!isNonNegativeInteger(correctChars) || !isNonNegativeInteger(incorrectChars)) {
+    if (
+      !isNonNegativeInteger(correctChars) ||
+      !isNonNegativeInteger(incorrectChars)
+    ) {
       return res.status(400).json({ error: "Ongeldige testresultaten." });
     }
 
     const totalChars = correctChars + incorrectChars;
-    if (!Number.isSafeInteger(totalChars) || totalChars < 1 || totalChars > 10000) {
+    if (
+      !Number.isSafeInteger(totalChars) ||
+      totalChars < 1 ||
+      totalChars > 10000
+    ) {
       return res.status(400).json({ error: "Ongeldig aantal getypte tekens." });
     }
 
@@ -245,7 +286,9 @@ app.post("/api/scores", async (req, res, next) => {
     const wpm = Math.round((correctChars / 5 / elapsedMinutes) * 10) / 10;
     const rawWpm = Math.round((totalChars / 5 / elapsedMinutes) * 10) / 10;
     if (wpm > MAX_WPM || rawWpm > MAX_WPM) {
-      return res.status(400).json({ error: `Deze score is niet realistisch (maximum ${MAX_WPM} WPM).` });
+      return res.status(400).json({
+        error: `Deze score is niet realistisch (maximum ${MAX_WPM} WPM).`,
+      });
     }
 
     const accuracy = Math.round((correctChars / totalChars) * 1000) / 10;
@@ -257,7 +300,7 @@ app.post("/api/scores", async (req, res, next) => {
       accuracy,
       errors: incorrectChars,
       mode: `${mode.type === "time" ? "tijd" : "woorden"} ${mode.value}`,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
 
     await saveScore(score);
@@ -268,7 +311,9 @@ app.post("/api/scores", async (req, res, next) => {
   }
 });
 
-app.use(express.static(path.join(__dirname, "public"), { extensions: ["html"] }));
+app.use(
+  express.static(path.join(__dirname, "public"), { extensions: ["html"] }),
+);
 
 app.use((error, req, res, next) => {
   if (res.headersSent) return next(error);
@@ -285,14 +330,18 @@ app.use((error, req, res, next) => {
 async function startServer() {
   if (SUPABASE_ENABLED) {
     const migratedCount = await migrateLocalScores();
-    console.log(`Lokale scorecontrole met Supabase voltooid (${migratedCount} score(s)).`);
+    console.log(
+      `Lokale scorecontrole met Supabase voltooid (${migratedCount} score(s)).`,
+    );
   }
 
   app.listen(PORT, HOST, () => {
     console.log(`TrendsType is beschikbaar op http://${HOST}:${PORT}`);
-    console.log(SUPABASE_ENABLED
-      ? "Scores worden opgeslagen in Supabase."
-      : `Lokale JSON-opslag actief: ${SCORES_FILE}`);
+    console.log(
+      SUPABASE_ENABLED
+        ? "Scores worden opgeslagen in Supabase."
+        : `Lokale JSON-opslag actief: ${SCORES_FILE}`,
+    );
   });
 }
 
