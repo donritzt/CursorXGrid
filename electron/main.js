@@ -80,14 +80,15 @@ app
     mainWindow.webContents.on("before-input-event", (event, input) => {
       if (
         input.type === "keyDown" &&
-        input.key === "Escape" &&
-        input.shift &&
+        input.key === "F11" &&
+        !input.shift &&
         !input.control &&
         !input.alt &&
         !input.meta
       ) {
         event.preventDefault();
-        if (mainWindow.isFullScreen()) mainWindow.setFullScreen(false);
+        if (!input.isAutoRepeat)
+          mainWindow.setFullScreen(!mainWindow.isFullScreen());
       }
     });
     mainWindow.webContents.on("will-navigate", (event, url) => {

@@ -1,6 +1,6 @@
 {
   "name": "trendstype",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "Self-hosted typing test and leaderboard for your team.",
   "main": "electron/main.js",

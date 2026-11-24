@@ -5,15 +5,15 @@ testmodi, Time Race en een scoreoverzicht.
 
 ## Downloaden en installeren
 
-- [Download de Windows-installer voor versie 1.0.2](https://github.com/donritzt/TrendsType/releases/download/v1.0.2/TrendsType-Setup-1.0.2-x64.exe).
+- [Download de Windows-installer voor versie 1.0.3](https://github.com/donritzt/TrendsType/releases/download/v1.0.3/TrendsType-Setup-1.0.3-x64.exe).
 - [Bekijk de nieuwste versie op GitHub](https://github.com/donritzt/TrendsType/releases/latest).
 
 Open de installer en volg de stappen. Je hebt geen Node.js nodig om de app te
 gebruiken. Omdat de installer momenteel niet is ondertekend, kunnen Windows of
 je browser een waarschuwing tonen.
 
-De desktopapp start schermvullend. Druk op **Shift+Esc** om terug te gaan naar
-een venster; de gewone **Esc**-toets blijft beschikbaar voor de typetest.
+De desktopapp start schermvullend. Met **F11** schakel je tussen volledig
+scherm en een venster; **Esc** blijft beschikbaar voor de typetest.
 
 Bij het opstarten controleert de app op updates. Wanneer een update beschikbaar
 is, kies je zelf of je die downloadt en installeert. De download verschijnt in
@@ -73,7 +73,7 @@ iedere nieuwe versie zelf een GitHub Release:
 1. Zorg dat je appwijzigingen getest en naar `main` gepusht zijn. Controleer
    met `git status` dat je geen werk bent vergeten.
 2. Verhoog de versie in `package.json` en `package-lock.json`. Bijvoorbeeld
-   voor een kleine bugfix (`1.0.2` wordt `1.0.3`):
+   voor een kleine bugfix (`1.0.3` wordt `1.0.4`):
 
    ```powershell
    npm version patch --no-git-tag-version
@@ -102,7 +102,7 @@ iedere nieuwe versie zelf een GitHub Release:
 
 4. Open de pagina **Releases** van de openbare GitHub-repository
    `donritzt/TrendsType`, kies **Draft a new release** en maak een nieuwe tag
-   zoals `v1.0.3` op de zojuist gepushte commit. Upload uit `dist/` de
+   zoals `v1.0.4` op de zojuist gepushte commit. Upload uit `dist/` de
    **installer van die versie**, `latest.yml` en het bijbehorende
    `.blockmap`-bestand als dat is gegenereerd. Publiceer als normale release,
    niet als draft of prerelease. De build publiceert niets automatisch.
