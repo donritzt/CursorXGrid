@@ -1102,12 +1102,13 @@ async function loadScores() {
     const response = await fetch("/api/scores", {
       headers: { Accept: "application/json" },
     });
-    if (!response.ok) throw new Error("Scores konden niet worden opgehaald.");
-    const scores = await response.json();
+    const scores = await readApiResponse(response);
     renderScores(scores);
   } catch (error) {
     els.scoreList.innerHTML =
       '<tr><td class="empty-state" colspan="5">Scoreboard tijdelijk niet beschikbaar</td></tr>';
+    els.scoreList.querySelector("td").textContent =
+      `Scores niet beschikbaar: ${error.message}`;
     console.error(error);
   }
 }
@@ -1460,3 +1461,67 @@ resetTest();
 window.setInterval(() => {
   if (!els.scoresPanel.hidden) loadScores();
 }, 15000);
+
+if (window.trendsTypeUpdates) {
+  const notice = document.querySelector("#update-notice");
+  const message = document.querySelector("#update-message");
+  const action = document.querySelector("#update-action");
+  const dismiss = document.querySelector("#update-dismiss");
+  let updateState = { status: "idle" };
+  let dismissed = false;
+
+  function showUpdateState() {
+    const busy =
+      state.started || state.transitioning || state.raceCountdownId !== null;
+    notice.hidden = busy || dismissed || updateState.status === "idle";
+    if (notice.hidden) return;
+    action.hidden = !["available", "downloaded"].includes(updateState.status);
+    if (updateState.status === "available") {
+      message.textContent = `Nieuwe versie ${updateState.version} is beschikbaar.`;
+      action.textContent = "Update downloaden";
+    } else if (updateState.status === "downloaded") {
+      message.textContent = `Versie ${updateState.version} is gedownload en klaar om te installeren.`;
+      action.textContent = "Installeren en herstarten";
+    } else if (updateState.status === "downloading") {
+      message.textContent = "Update wordt gedownload...";
+    } else {
+      message.textContent = updateState.message || "Updatecontrole mislukt.";
+    }
+  }
+
+  function receiveUpdate(nextState) {
+    updateState = nextState;
+    dismissed = false;
+    showUpdateState();
+  }
+
+  window.trendsTypeUpdates.onState(receiveUpdate);
+  window.trendsTypeUpdates
+    .getState()
+    .then(receiveUpdate)
+    .catch((error) => {
+      console.error("Update-informatie ophalen mislukt:", error);
+      receiveUpdate({
+        status: "error",
+        message: "Update-informatie ophalen mislukt.",
+      });
+    });
+  action.addEventListener("click", async () => {
+    if (state.started || state.transitioning || state.raceCountdownId !== null)
+      return;
+    try {
+      if (updateState.status === "available")
+        await window.trendsTypeUpdates.download();
+      else if (updateState.status === "downloaded")
+        await window.trendsTypeUpdates.install();
+    } catch (error) {
+      console.error("Updateactie mislukt:", error);
+      receiveUpdate({ status: "error", message: "Updateactie mislukt." });
+    }
+  });
+  dismiss.addEventListener("click", () => {
+    dismissed = true;
+    showUpdateState();
+  });
+  window.setInterval(showUpdateState, 250);
+}

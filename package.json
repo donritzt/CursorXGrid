@@ -1,17 +1,26 @@
 {
   "name": "trendstype",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Self-hosted typing test and leaderboard for your team.",
-  "main": "server.js",
+  "main": "electron/main.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "desktop": "install-electron && electron .",
+    "dist:win": "install-electron && electron-builder --config electron-builder.config.cjs --win nsis --x64 --publish never",
+    "dist:win:signed": "install-electron && electron-builder --config electron-builder.config.cjs --win nsis --x64 --publish never --config.forceCodeSigning=true",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "electron-updater": "^6.8.11"
+  },
+  "devDependencies": {
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0"
   }
 }

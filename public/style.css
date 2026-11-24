@@ -12,6 +12,34 @@
   --font: "Inter", "Segoe UI", system-ui, sans-serif;
 }
 
+.update-notice {
+  position: fixed;
+  z-index: 50;
+  right: 20px;
+  top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100vw - 40px);
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-raised);
+  color: var(--text);
+}
+
+.update-notice[hidden] {
+  display: none;
+}
+
+.update-notice button {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--panel);
+  cursor: pointer;
+}
+
 * {
   box-sizing: border-box;
 }
