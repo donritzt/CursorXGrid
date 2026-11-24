@@ -1,28 +1,37 @@
 # TrendsType
 
-Een typetest met tijd- en woordmodi, Nederlandse en Engelse woorden en een apart scoreoverzicht. Zonder Supabase worden scores lokaal opgeslagen in `data/scores.json`. Met Supabase worden nieuwe scores centraal opgeslagen zodat ze op meerdere apparaten beschikbaar zijn.
+Een Windows-typetest met Nederlandse en Engelse woorden, verschillende
+testmodi, Time Race en een scoreoverzicht.
 
-## Lokaal starten
+## Downloaden en installeren
 
-Dubbelklik op [`scripts/start-trendstype.bat`](./scripts/start-trendstype.bat) in de projectmap. De eerste keer installeert het script zo nodig automatisch de benodigde onderdelen. Open daarna <http://localhost:3000> in je browser.
+- [Download de Windows-installer voor versie 1.0.2](https://github.com/donritzt/TrendsType/releases/download/v1.0.2/TrendsType-Setup-1.0.2-x64.exe).
+- [Bekijk de nieuwste versie op GitHub](https://github.com/donritzt/TrendsType/releases/latest).
 
-Laat het zwarte servervenster open zolang je de app gebruikt. Druk in dat venster op `Ctrl+C` om de server te stoppen. Als Node.js niet gevonden wordt, bekijk dan de installatie-informatie in deze README.
+Open de installer en volg de stappen. Je hebt geen Node.js nodig om de app te
+gebruiken. Omdat de installer momenteel niet is ondertekend, kunnen Windows of
+je browser een waarschuwing tonen.
 
-Je kunt de server ook handmatig vanuit VS Code starten via **Terminal → New Terminal**:
+De desktopapp start schermvullend. Druk op **Shift+Esc** om terug te gaan naar
+een venster; de gewone **Esc**-toets blijft beschikbaar voor de typetest.
 
-```powershell
-& "$env:LOCALAPPDATA\Programs\TrendsType-Node\node.exe" server.js
-```
+Bij het opstarten controleert de app op updates. Wanneer een update beschikbaar
+is, kies je zelf of je die downloadt en installeert. De download verschijnt in
+de app; na bevestiging sluit TrendsType kort, installeert de update zonder
+installatievenster en start opnieuw. Windows kan alsnog een beveiligings- of
+toestemmingsmelding tonen. Je kunt ook zonder internet typen, maar het gedeelde
+scorebord werkt pas als de server en Supabase zijn ingesteld en bereikbaar zijn.
 
 ## Projectstructuur
 
-- `server.js`: Express-server en API.
-- `public/`: frontend; afbeeldingen staan in `public/assets/`.
-- `scripts/`: Windows-startscript.
+- `electron/`: desktopvenster, beveiligde verbinding en updatecontrole.
+- `public/`: frontend en afbeeldingen.
+- `server.js`: Express-server en score-API.
 - `supabase/`: SQL-schema voor centrale scores.
-- `package.json` en `package-lock.json`: projectafhankelijkheden.
+- `test/`: tests voor de desktopapp.
+- `package.json` en `package-lock.json`: versie en afhankelijkheden.
 
-## Windows-desktopapp
+## Ontwikkeling en Windows-build
 
 De desktopapp verpakt de frontend lokaal met Electron. Voor een gedeeld
 scorebord blijft de bestaande Express-server extern draaien met Supabase.
@@ -49,13 +58,12 @@ eigen Electron-runtime: spelers hoeven Node.js niet te installeren. De ingesteld
 API-origin wordt tijdens het bouwen vastgelegd; maak een nieuwe installer als
 het adres verandert. Is nog geen adres beschikbaar, laat de variabele weg:
 de app start dan zonder scoreverbinding. Ongeldige, niet-HTTPS-adressen worden
-afgewezen. De gewone webapp blijft beschikbaar via `npm start`.
+afgewezen.
 
 Voor gedeelde scores moet je de bestaande server met Supabase-configuratie
-zelf bereikbaar maken op een vast HTTPS-adres. Een tijdelijke Quick Tunnel kan
-van adres veranderen en is daarom geen geschikte vaste releaseconfiguratie.
-De testsessies staan in het geheugen van de server; na een serverherstart
-moeten actieve tests opnieuw worden gestart.
+zelf bereikbaar maken op een vast HTTPS-adres. De testsessies staan in het
+geheugen van de server; na een serverherstart moeten actieve tests opnieuw
+worden gestart.
 
 ### Releases en updates
 
@@ -65,12 +73,18 @@ iedere nieuwe versie zelf een GitHub Release:
 1. Zorg dat je appwijzigingen getest en naar `main` gepusht zijn. Controleer
    met `git status` dat je geen werk bent vergeten.
 2. Verhoog de versie in `package.json` en `package-lock.json`. Bijvoorbeeld
-   voor een kleine bugfix (`1.0.0` wordt `1.0.1`):
+   voor een kleine bugfix (`1.0.2` wordt `1.0.3`):
 
    ```powershell
    npm version patch --no-git-tag-version
    $version = node -p "require('./package.json').version"
-   git add package.json package-lock.json
+   ```
+
+   Werk de directe installerlink bovenaan deze README bij naar de nieuwe
+   versie en push daarna de versiebestanden en README:
+
+   ```powershell
+   git add package.json package-lock.json README.md
    git commit -m "Release v$version"
    git push origin main
    ```
@@ -88,14 +102,16 @@ iedere nieuwe versie zelf een GitHub Release:
 
 4. Open de pagina **Releases** van de openbare GitHub-repository
    `donritzt/TrendsType`, kies **Draft a new release** en maak een nieuwe tag
-   zoals `v1.0.1` op de zojuist gepushte commit. Upload uit `dist/` de
+   zoals `v1.0.3` op de zojuist gepushte commit. Upload uit `dist/` de
    **installer van die versie**, `latest.yml` en het bijbehorende
    `.blockmap`-bestand als dat is gegenereerd. Publiceer als normale release,
    niet als draft of prerelease. De build publiceert niets automatisch.
 5. Test de release met een computer waarop een oudere versie geïnstalleerd is.
    Bij de volgende start controleert de app op updates. De speler krijgt buiten
    een actieve test een melding en kiest zelf om te downloaden en daarna te
-   installeren en herstarten. Een draaiende app controleert niet opnieuw tot
+   installeren en herstarten. Bestaande installaties gebruiken hiervoor nog hun
+   eigen update-interface; de nieuwe interface werkt vanaf de versie waarin
+   deze wijziging is uitgebracht. Een draaiende app controleert niet opnieuw tot
    de volgende start. Internet en toegang tot de openbare release zijn nodig.
    Als de app al up-to-date is, wordt dat gemeld. Als er nog geen release
    bestaat, meldt de app dat er nog geen updates gepubliceerd zijn.
@@ -121,15 +137,25 @@ Supabase-sleutels in de installer of repository.
 
 ## Typetest gebruiken
 
-Kies vóór de test de tijdsduur of het aantal woorden. Kies de taal met de aparte knoppen **Nederlands** en **English** en stel daarnaast de moeilijkheid in op **Normaal** of **1k**. 1k is een moeilijkheidsgraad, geen aantal woorden. Iedere test krijgt een opnieuw geschudde woordenlijst zonder herhalingen. Tijdens tijdtests zie je de resterende tijd live. Een fout teken dat je met Backspace corrigeert telt als een halve fout voor nauwkeurigheid en foutentotaal. Na afloop zie je WPM, raw WPM, nauwkeurigheid, fouten en consistentie, plus een grafiek van je raw WPM per seconde op dezelfde pagina. De brede, transparante uitslag staat iets boven het midden en vervangt tijdelijk de typetest; de hoofdbalk en instellingen verdwijnen ook en komen bij **Esc** vloeiend terug. Druk op **Enter** om dezelfde tekst opnieuw te typen, op **Esc** om met een vloeiende overgang terug te keren naar de typetest of op **Opnieuw typen** voor een nieuwe tekst. De consistentiescore is gebaseerd op hoeveel je tempo gedurende de test schommelde. Met **Zelfde tekst opnieuw** kun je dezelfde woorden opnieuw proberen; tijdens die poging laat een subtiele schaduw je snelste voortgang zien. Na een normale typetest kun je je naam invullen en je score opslaan; de server controleert de testsessie en score voordat die op het scorebord verschijnt. **Time Race** wordt niet opgeslagen op het normale scorebord. Gebruik de tab **Scores** bovenaan om scores te bekijken.
+- Kies een tijdsduur of aantal woorden, de taal en de moeilijkheid **Normaal**
+  of **1k**. Iedere test gebruikt een geschudde woordenlijst.
+- De uitslag toont WPM, raw WPM, nauwkeurigheid, fouten, consistentie en een
+  snelheidsgrafiek. Een gecorrigeerd fout teken telt als een halve fout mee
+  voor nauwkeurigheid en foutentotaal.
+- Druk op **Enter** voor dezelfde tekst of op **Esc** om terug te gaan. Kies
+  **Opnieuw typen** voor een nieuwe tekst. Bij een herhaling toont een
+  schaduw je snelste eerdere voortgang.
+- Met **Tab** gevolgd door **Enter** binnen 1,5 seconde herstart je de test.
+  Het lettertype stel je rechts onderaan in; de keuze wordt onthouden en de
+  app gebruikt lokale systeemfonts.
+- Via **Time Race** start je met 10 seconden. Een correct woord gevolgd door
+  spatie of Enter levert een punt op; bonuswoorden voegen 3 seconden toe.
+  Time Race wordt niet op het normale scorebord opgeslagen.
+- Na een normale test kun je je naam en score opslaan als de score-server
+  beschikbaar is. Bekijk het scorebord via **Scores**.
 
-Start **Time Race** met de kleine klokkaart aan de rechterkant van het startscherm. Na een aftellende 3–2–1 start de ronde met 10 seconden. Typ een woord precies goed en druk op spatie of Enter om een punt te scoren. Om de 3 tot 5 woorden verschijnt een bonuswoord dat 3 seconden toevoegt. Bij nul seconden zie je je score en kun je opnieuw spelen; druk op **Esc** om terug te gaan naar de normale typetest.
-
-Druk op **Tab** en daarna binnen 1,5 seconde op **Enter** om de test direct opnieuw te starten, ook tijdens het typen.
-
-Rechts onderaan kun je het lettertype aanpassen. De keuze wordt in deze browser onthouden; de app gebruikt lokale systeemfonts en haalt dus geen lettertypes van internet.
-
-Tijdens een test zijn kopiëren, knippen, plakken en slepen geblokkeerd. Als het testvenster de focus verliest of het tabblad wordt verlaten, wordt de test ongeldig en opnieuw ingesteld. Een website kan het wisselen van browsertabbladen niet volledig verhinderen.
+Tijdens een test zijn kopiëren, knippen, plakken en slepen geblokkeerd. Als
+het testvenster de focus verliest, wordt de test opnieuw ingesteld.
 
 ## Woordenlijsten
 
@@ -148,57 +174,8 @@ Supabase biedt een gratis pakket met gebruikslimieten en voorwaarden die kunnen 
    SUPABASE_SERVICE_ROLE_KEY=jouw-geheime-service-role-sleutel
    ```
 
-4. Herstart de server met `scripts\start-trendstype.bat`. In het servervenster hoort te staan dat scores in Supabase worden opgeslagen.
-## Delen via Cloudflare Tunnel
-
-### Tijdelijke link (Quick Tunnel)
-
-Start TrendsType met `scripts/start-trendstype.bat`. Dubbelklik daarna op `scripts/start-trendstype-quick-tunnel.bat`. Het script controleert eerst of TrendsType bereikbaar is en start dan de tunnel. De deelbare URL verschijnt in het tunnelvenster.
-
-Je kunt de tunnel ook handmatig in een tweede PowerShell-venster starten:
-
-```powershell
-& "$env:LOCALAPPDATA\Programs\cloudflared\cloudflared.exe" tunnel --url http://127.0.0.1:3000 --no-autoupdate
-```
-
-De Quick Tunnel-link is tijdelijk en kan bij een nieuwe start veranderen. De link werkt alleen zolang zowel de TrendsType-server als het tunnelvenster actief zijn. Druk op `Ctrl+C` in het tunnelvenster om de tunnel te stoppen. Iedereen met de link kan de app bereiken.
-
-### Vaste URL met een eigen domein
-
-Voor een vaste URL, bijvoorbeeld `type.jouwdomein.nl`, heb je een eigen domein nodig dat aan Cloudflare is toegevoegd en daar actief is. Een Cloudflare-account zonder domein is niet genoeg. De tunnel en DNS-route stel je eenmalig in; daarna kun je de tunnel steeds starten en stoppen terwijl de URL hetzelfde blijft.
-
-1. Voeg je domein toe aan Cloudflare. Als het domein ergens anders is geregistreerd, volg dan Cloudflares stappen om de nameservers naar Cloudflare te laten verwijzen.
-2. Meld `cloudflared` eenmalig aan bij Cloudflare. Dit opent een browservenster:
-
-   ```powershell
-   $cloudflared = "$env:LOCALAPPDATA\Programs\cloudflared\cloudflared.exe"
-   & $cloudflared tunnel login
-   ```
-
-3. Maak de tunnel en DNS-route aan; vervang de hostnaam door een adres onder je eigen domein:
-
-   ```powershell
-   & $cloudflared tunnel create trendstype
-   & $cloudflared tunnel route dns trendstype type.jouwdomein.nl
-   ```
-
-   Bewaar de tunnel-UUID die het eerste commando toont.
-4. Maak `%USERPROFILE%\.cloudflared\config.yml` met die UUID en het bijbehorende credentials-bestand:
-
-   ```yaml
-   tunnel: <TUNNEL-UUID>
-   credentials-file: C:\Users\<JOUW-NAAM>\.cloudflared\<TUNNEL-UUID>.json
-
-   ingress:
-     - hostname: type.jouwdomein.nl
-       service: http://127.0.0.1:3000
-     - service: http_status:404
-   ```
-
-5. Start eerst TrendsType en daarna de tunnel in een tweede PowerShell-venster:
-
-   ```powershell
-   & "$env:LOCALAPPDATA\Programs\cloudflared\cloudflared.exe" tunnel run trendstype
-   ```
-
-Druk op `Ctrl+C` om de tunnel te stoppen en start hetzelfde commando opnieuw om hem weer aan te zetten. De URL blijft gelijk, maar is alleen bereikbaar zolang zowel TrendsType als de tunnel draaien. Zonder Cloudflare Access kan iedereen met de vaste URL de app bereiken.
+4. Herstart de server en controleer de melding dat scores in Supabase worden
+   opgeslagen. Zonder Supabase bewaart de server scores in `data/scores.json`.
+5. Maak de server bereikbaar via een vast HTTPS-adres en bouw de desktopapp
+   met dat adres als `TRENDSTYPE_API_URL`. De desktopapp bevat geen geheime
+   Supabase-sleutel.

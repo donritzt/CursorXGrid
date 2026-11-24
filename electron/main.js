@@ -68,6 +68,7 @@ app
       height: 800,
       minWidth: 360,
       minHeight: 500,
+      fullscreen: true,
       icon: path.join(__dirname, "..", "public", "assets", "app-icon.ico"),
       webPreferences: {
         preload: path.join(__dirname, "preload.js"),
@@ -75,6 +76,19 @@ app
         contextIsolation: true,
         sandbox: true,
       },
+    });
+    mainWindow.webContents.on("before-input-event", (event, input) => {
+      if (
+        input.type === "keyDown" &&
+        input.key === "Escape" &&
+        input.shift &&
+        !input.control &&
+        !input.alt &&
+        !input.meta
+      ) {
+        event.preventDefault();
+        if (mainWindow.isFullScreen()) mainWindow.setFullScreen(false);
+      }
     });
     mainWindow.webContents.on("will-navigate", (event, url) => {
       if (!isAppPage(url)) event.preventDefault();

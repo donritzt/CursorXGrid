@@ -27,7 +27,7 @@ exit /b 0
 
 :node_missing
 echo Node.js is niet gevonden. De draagbare Node.js-installatie ontbreekt.
-echo Bekijk README.md voor hulp bij het installeren van Node.js.
+echo Installeer Node.js 22.12 of nieuwer vanaf https://nodejs.org/.
 pause
 exit /b 1
 

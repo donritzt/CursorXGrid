@@ -1,5 +1,6 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
+contextBridge.exposeInMainWorld("trendsTypeDesktop", true);
 contextBridge.exposeInMainWorld("trendsTypeUpdates", {
   getState: () => ipcRenderer.invoke("updates:state"),
   download: () => ipcRenderer.invoke("updates:download"),

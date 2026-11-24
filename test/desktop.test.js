@@ -138,18 +138,19 @@ test("API proxy reports network failures and rejects oversized requests", async 
 test("updater waits for explicit download and install", async () => {
   const updater = new EventEmitter();
   let downloads = 0;
-  let installs = 0;
+  const installs = [];
   updater.checkForUpdates = async () =>
     updater.emit("update-available", { version: "1.1.0" });
   updater.downloadUpdate = async () => {
     downloads += 1;
+    updater.emit("download-progress", { percent: 42.6 });
     updater.emit("update-downloaded", { version: "1.1.0" });
   };
-  updater.quitAndInstall = () => {
-    installs += 1;
+  updater.quitAndInstall = (...args) => {
+    installs.push(args);
   };
   const states = [];
-  const updates = createUpdates(updater, (state) => states.push(state.status));
+  const updates = createUpdates(updater, (state) => states.push(state));
   assert.equal(updater.autoDownload, false);
   assert.equal(updater.autoInstallOnAppQuit, false);
   assert.throws(() => updates.install());
@@ -161,10 +162,37 @@ test("updater waits for explicit download and install", async () => {
   });
   await updates.download();
   assert.equal(downloads, 1);
-  assert.equal(installs, 0);
+  assert.equal(installs.length, 0);
   updates.install();
-  assert.equal(installs, 1);
-  assert.deepEqual(states, ["available", "downloading", "downloaded"]);
+  assert.deepEqual(installs, [[true, true]]);
+  assert.deepEqual(states, [
+    { status: "available", version: "1.1.0" },
+    { status: "downloading", version: "1.1.0" },
+    { status: "downloading", version: "1.1.0", percent: 43 },
+    { status: "downloaded", version: "1.1.0" },
+    { status: "installing", version: "1.1.0" },
+  ]);
+  assert.throws(() => updates.install());
+});
+
+test("download progress is bounded and ignored outside an active download", async () => {
+  const updater = new EventEmitter();
+  updater.downloadUpdate = async () => {
+    updater.emit("download-progress", { percent: -5 });
+    assert.equal(updates.getState().percent, 0);
+    updater.emit("download-progress", { percent: 150 });
+    assert.equal(updates.getState().percent, 100);
+    updater.emit("download-progress", { percent: NaN });
+    assert.equal(updates.getState().percent, 100);
+    updater.emit("update-downloaded", { version: "1.1.0" });
+  };
+  const updates = createUpdates(updater, () => {});
+  updater.emit("update-available", { version: "1.1.0" });
+  updater.emit("download-progress", { percent: 50 });
+  assert.equal(updates.getState().status, "available");
+  await updates.download();
+  updater.emit("download-progress", { percent: 70 });
+  assert.equal(updates.getState().status, "downloaded");
 });
 
 test("updater failures are reported without crashing", async () => {
@@ -181,6 +209,22 @@ test("updater failures are reported without crashing", async () => {
   await updates.check();
   assert.equal(updates.getState().status, "error");
   assert.equal(errors.length, 1);
+});
+
+test("installation failures are reported explicitly", () => {
+  const updater = new EventEmitter();
+  updater.quitAndInstall = () => updater.emit("error", new Error("failed"));
+  const updates = createUpdates(
+    updater,
+    () => {},
+    () => {},
+  );
+  updater.emit("update-downloaded", { version: "1.1.0" });
+  updates.install();
+  assert.deepEqual(updates.getState(), {
+    status: "error",
+    message: "Update installeren mislukt.",
+  });
 });
 
 test("updater confirms when the installed version is current", async () => {

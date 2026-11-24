@@ -17,26 +17,59 @@
   z-index: 50;
   right: 20px;
   top: 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display: grid;
+  gap: 10px;
+  width: 360px;
   max-width: calc(100vw - 40px);
-  padding: 12px;
+  padding: 18px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--panel-raised);
   color: var(--text);
+  box-shadow: 0 12px 30px #0005;
 }
 
 .update-notice[hidden] {
   display: none;
 }
 
-.update-notice button {
-  padding: 6px 10px;
-  border: 1px solid var(--border);
+.update-notice strong {
+  padding-right: 26px;
+  color: var(--accent);
+}
+
+.update-notice progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--accent);
+}
+
+.update-notice progress[hidden],
+.update-notice button[hidden] {
+  display: none;
+}
+
+#update-action {
+  justify-self: start;
+  padding: 8px 12px;
+  border: 0;
   border-radius: 5px;
-  background: var(--panel);
+  background: var(--accent);
+  color: #081015;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+#update-dismiss {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  padding: 2px 6px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
   cursor: pointer;
 }
 
@@ -83,7 +116,6 @@ button {
   letter-spacing: -1px;
   text-decoration: none;
 }
-.header-note,
 .live-label {
   display: flex;
   align-items: center;
@@ -415,9 +447,6 @@ td:nth-child(3) {
   .topbar {
     height: 72px;
   }
-  .header-note {
-    font-size: 9px;
-  }
   main {
     padding: 43px 0 58px;
   }
@@ -486,12 +515,6 @@ body {
   gap: 11px;
   font-size: 18px;
   letter-spacing: -0.8px;
-}
-.header-note {
-  padding: 8px 12px;
-  border: 1px solid #253647;
-  border-radius: 999px;
-  background: #101923;
 }
 .status-dot {
   flex: 0 0 auto;
@@ -856,25 +879,6 @@ body.test-finished #typing-panel {
   box-shadow: 0 20px 70px #0004;
   text-align: center;
 }
-.results-kicker {
-  margin: 0 0 7px;
-  color: var(--muted);
-  font-size: 10px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-}
-.results-title {
-  margin: 0 0 20px;
-  color: var(--text);
-  font-size: clamp(24px, 3vw, 32px);
-  font-weight: 600;
-}
-.results-stats {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 27px;
-}
 .results-stat {
   min-width: 0;
 }
@@ -1054,11 +1058,6 @@ body.test-finished #typing-panel {
   }
   .typing-results {
     padding: 27px 16px;
-  }
-  .results-stats {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px 6px;
-    margin-bottom: 20px;
   }
   .results-chart {
     height: 145px;
@@ -1407,6 +1406,18 @@ body.test-running .words {
   width: min(1320px, 100%);
   transform: none;
 }
+.fullscreen-hint {
+  position: fixed;
+  left: 20px;
+  bottom: 40px;
+  z-index: 10;
+  color: var(--muted);
+  font-size: 10px;
+}
+body.test-running .fullscreen-hint,
+body.time-race .fullscreen-hint {
+  display: none;
+}
 .github-link {
   position: fixed;
   left: 20px;
@@ -1519,6 +1530,10 @@ body.test-running .words {
   .github-link {
     left: 12px;
     bottom: 10px;
+  }
+  .fullscreen-hint {
+    left: 12px;
+    bottom: 36px;
   }
   .font-control {
     right: 12px;

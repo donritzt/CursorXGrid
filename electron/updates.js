@@ -23,7 +23,10 @@ function createUpdates(updater, notify, log = console.error) {
     }
     setState({
       status: "error",
-      message: "Updatecontrole of downloaden mislukt.",
+      message:
+        state.status === "installing"
+          ? "Update installeren mislukt."
+          : "Updatecontrole of downloaden mislukt.",
     });
   };
   updater.autoDownload = false;
@@ -34,6 +37,14 @@ function createUpdates(updater, notify, log = console.error) {
   updater.on("update-not-available", () =>
     setState({ status: "current", message: "Je gebruikt de nieuwste versie." }),
   );
+  updater.on("download-progress", ({ percent }) => {
+    if (state.status === "downloading" && Number.isFinite(percent)) {
+      setState({
+        ...state,
+        percent: Math.min(100, Math.max(0, Math.round(percent))),
+      });
+    }
+  });
   updater.on("update-downloaded", (info) =>
     setState({ status: "downloaded", version: info.version }),
   );
@@ -54,7 +65,7 @@ function createUpdates(updater, notify, log = console.error) {
     async download() {
       if (state.status !== "available")
         throw new Error("Geen update beschikbaar.");
-      setState({ status: "downloading" });
+      setState({ status: "downloading", version: state.version });
       lastReportedError = undefined;
       try {
         await updater.downloadUpdate();
@@ -65,7 +76,8 @@ function createUpdates(updater, notify, log = console.error) {
     install() {
       if (state.status !== "downloaded")
         throw new Error("Update is nog niet gedownload.");
-      updater.quitAndInstall();
+      setState({ status: "installing", version: state.version });
+      updater.quitAndInstall(true, true);
     },
   };
 }

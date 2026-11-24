@@ -465,6 +465,9 @@
       </button>
     </div>
 
+    <span class="fullscreen-hint" id="fullscreen-hint" hidden>
+      Shift+Esc: volledig scherm verlaten
+    </span>
     <a
       class="github-link"
       href="https://github.com/donritzt"
@@ -487,11 +490,18 @@
     </label>
 
     <aside class="update-notice" id="update-notice" aria-live="polite" hidden>
-      <span id="update-message"></span>
-      <button id="update-action" type="button" hidden></button>
       <button id="update-dismiss" type="button" aria-label="Melding sluiten">
         ×
       </button>
+      <strong>TrendsType-update</strong>
+      <span id="update-message"></span>
+      <progress
+        id="update-progress"
+        max="100"
+        aria-label="Voortgang van de updatedownload"
+        hidden
+      ></progress>
+      <button id="update-action" type="button" hidden></button>
     </aside>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </body>

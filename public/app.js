@@ -1462,36 +1462,58 @@ window.setInterval(() => {
   if (!els.scoresPanel.hidden) loadScores();
 }, 15000);
 
+if (window.trendsTypeDesktop) {
+  document.querySelector("#fullscreen-hint").hidden = false;
+}
+
 if (window.trendsTypeUpdates) {
   const notice = document.querySelector("#update-notice");
   const message = document.querySelector("#update-message");
+  const progress = document.querySelector("#update-progress");
   const action = document.querySelector("#update-action");
   const dismiss = document.querySelector("#update-dismiss");
   let updateState = { status: "idle" };
   let dismissed = false;
 
+  function isTestInProgress() {
+    return (
+      (state.started && !state.finished) ||
+      state.transitioning ||
+      state.raceCountdownId !== null
+    );
+  }
+
   function showUpdateState() {
-    const busy =
-      state.started || state.transitioning || state.raceCountdownId !== null;
-    notice.hidden = busy || dismissed || updateState.status === "idle";
+    notice.hidden =
+      isTestInProgress() || dismissed || updateState.status === "idle";
     if (notice.hidden) return;
     action.hidden = !["available", "downloaded"].includes(updateState.status);
+    progress.hidden = updateState.status !== "downloading";
     if (updateState.status === "available") {
       message.textContent = `Nieuwe versie ${updateState.version} is beschikbaar.`;
       action.textContent = "Update downloaden";
     } else if (updateState.status === "downloaded") {
-      message.textContent = `Versie ${updateState.version} is gedownload en klaar om te installeren.`;
+      message.textContent = `Versie ${updateState.version} is klaar. TrendsType sluit kort en start automatisch opnieuw.`;
       action.textContent = "Installeren en herstarten";
     } else if (updateState.status === "downloading") {
-      message.textContent = "Update wordt gedownload...";
+      if (Number.isFinite(updateState.percent)) {
+        progress.value = updateState.percent;
+        message.textContent = `Update wordt gedownload... ${updateState.percent}%`;
+      } else {
+        progress.removeAttribute("value");
+        message.textContent = "Update wordt gedownload...";
+      }
+    } else if (updateState.status === "installing") {
+      message.textContent =
+        "Update wordt geïnstalleerd. TrendsType start zo opnieuw.";
     } else {
       message.textContent = updateState.message || "Updatecontrole mislukt.";
     }
   }
 
   function receiveUpdate(nextState) {
+    if (nextState.status !== updateState.status) dismissed = false;
     updateState = nextState;
-    dismissed = false;
     showUpdateState();
   }
 
@@ -1507,8 +1529,7 @@ if (window.trendsTypeUpdates) {
       });
     });
   action.addEventListener("click", async () => {
-    if (state.started || state.transitioning || state.raceCountdownId !== null)
-      return;
+    if (isTestInProgress()) return;
     try {
       if (updateState.status === "available")
         await window.trendsTypeUpdates.download();
