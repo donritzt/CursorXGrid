@@ -1,12 +1,15 @@
-# TrendsType
+# CursorXGrid
 
-Een Windows-typetest met Nederlandse en Engelse woorden, verschillende
-testmodi, Time Race en een scoreoverzicht.
+CursorXGrid (CXG) is een Windows-typetest met Nederlandse en Engelse woorden,
+verschillende testmodi, Time Race en een scoreoverzicht.
 
 ## Downloaden en installeren
 
-- [Download de Windows-installer voor versie 1.0.3](https://github.com/donritzt/TrendsType/releases/download/v1.0.3/TrendsType-Setup-1.0.3-x64.exe).
-- [Bekijk de nieuwste versie op GitHub](https://github.com/donritzt/TrendsType/releases/latest).
+- [Download de Windows-installer voor versie 1.0.4](https://github.com/donritzt/CursorXGrid/releases/download/v1.0.4/CursorXGrid-Setup-1.0.4-x64.exe).
+- [Bekijk de nieuwste versie op GitHub](https://github.com/donritzt/CursorXGrid/releases/latest).
+
+De app heeft een nieuwe Windows-identiteit en wordt naast bestaande installaties
+geïnstalleerd; eerdere desktopvoorkeuren worden niet automatisch overgenomen.
 
 Open de installer en volg de stappen. Je hebt geen Node.js nodig om de app te
 gebruiken. Omdat de installer momenteel niet is ondertekend, kunnen Windows of
@@ -17,7 +20,7 @@ scherm en een venster; **Esc** blijft beschikbaar voor de typetest.
 
 Bij het opstarten controleert de app op updates. Wanneer een update beschikbaar
 is, kies je zelf of je die downloadt en installeert. De download verschijnt in
-de app; na bevestiging sluit TrendsType kort, installeert de update zonder
+de app; na bevestiging sluit CursorXGrid kort, installeert de update zonder
 installatievenster en start opnieuw. Windows kan alsnog een beveiligings- of
 toestemmingsmelding tonen. Je kunt ook zonder internet typen, maar het gedeelde
 scorebord werkt pas als de server en Supabase zijn ingesteld en bereikbaar zijn.
@@ -35,7 +38,7 @@ scorebord werkt pas als de server en Supabase zijn ingesteld en bereikbaar zijn.
 
 De desktopapp verpakt de frontend lokaal met Electron. Voor een gedeeld
 scorebord blijft de bestaande Express-server extern draaien met Supabase.
-Het venster en de Windows-installer gebruiken het TrendsType-logo.
+Het venster en de Windows-installer gebruiken het CursorXGrid-logo.
 De `service_role`-sleutel hoort alleen op die server en nooit in de app of
 installer. Zonder ingestelde of bereikbare server kun je typen en Time Race
 spelen, maar kun je geen scores ophalen of opslaan. De desktopapp maakt geen
@@ -47,7 +50,7 @@ Electron-bouwtools en voer in de projectmap uit:
 ```powershell
 npm install
 # Optioneel: uitsluitend de HTTPS-origin van je eigen server, zonder pad.
-# $env:TRENDSTYPE_API_URL = "https://type.jouwdomein.nl"
+# $env:CURSORXGRID_API_URL = "https://type.jouwdomein.nl"
 npm run desktop
 npm run dist:win
 ```
@@ -73,15 +76,15 @@ iedere nieuwe versie zelf een GitHub Release:
 1. Zorg dat je appwijzigingen getest en naar `main` gepusht zijn. Controleer
    met `git status` dat je geen werk bent vergeten.
 2. Verhoog de versie in `package.json` en `package-lock.json`. Bijvoorbeeld
-   voor een kleine bugfix (`1.0.3` wordt `1.0.4`):
+   voor een kleine bugfix (`1.0.4` wordt `1.0.5`):
 
    ```powershell
    npm version patch --no-git-tag-version
    $version = node -p "require('./package.json').version"
    ```
 
-   Werk de directe installerlink bovenaan deze README bij naar de nieuwe
-   versie en push daarna de versiebestanden en README:
+   Werk de downloadinformatie bovenaan deze README bij zodra de release
+   bestaat en push daarna de versiebestanden en README:
 
    ```powershell
    git add package.json package-lock.json README.md
@@ -96,13 +99,13 @@ iedere nieuwe versie zelf een GitHub Release:
    score-server is:
 
    ```powershell
-   # $env:TRENDSTYPE_API_URL = "https://type.jouwdomein.nl"
+   # $env:CURSORXGRID_API_URL = "https://type.jouwdomein.nl"
    npm run dist:win
    ```
 
 4. Open de pagina **Releases** van de openbare GitHub-repository
-   `donritzt/TrendsType`, kies **Draft a new release** en maak een nieuwe tag
-   zoals `v1.0.4` op de zojuist gepushte commit. Upload uit `dist/` de
+   `donritzt/CursorXGrid`, kies **Draft a new release** en maak een nieuwe tag
+   zoals `v1.0.5` op de zojuist gepushte commit. Upload uit `dist/` de
    **installer van die versie**, `latest.yml` en het bijbehorende
    `.blockmap`-bestand als dat is gegenereerd. Publiceer als normale release,
    niet als draft of prerelease. De build publiceert niets automatisch.
@@ -177,5 +180,5 @@ Supabase biedt een gratis pakket met gebruikslimieten en voorwaarden die kunnen 
 4. Herstart de server en controleer de melding dat scores in Supabase worden
    opgeslagen. Zonder Supabase bewaart de server scores in `data/scores.json`.
 5. Maak de server bereikbaar via een vast HTTPS-adres en bouw de desktopapp
-   met dat adres als `TRENDSTYPE_API_URL`. De desktopapp bevat geen geheime
+   met dat adres als `CURSORXGRID_API_URL`. De desktopapp bevat geen geheime
    Supabase-sleutel.

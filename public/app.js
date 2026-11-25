@@ -498,7 +498,7 @@ function setFont(fontName) {
   const fontFamily = fontFamilies[fontName];
   if (!fontFamily) return;
   document.documentElement.style.setProperty("--font", fontFamily);
-  localStorage.setItem("trendstype-font", fontName);
+  localStorage.setItem("cursorxgrid-font", fontName);
   layoutWords();
   renderWords();
 }
@@ -1353,7 +1353,7 @@ els.scoreForm.addEventListener("submit", async (event) => {
     if (runId === state.testRunId) state.scoreSaving = false;
   }
 });
-const savedFont = localStorage.getItem("trendstype-font");
+const savedFont = localStorage.getItem("cursorxgrid-font");
 if (Object.prototype.hasOwnProperty.call(fontFamilies, savedFont)) {
   els.fontSelect.value = savedFont;
 }
@@ -1462,11 +1462,11 @@ window.setInterval(() => {
   if (!els.scoresPanel.hidden) loadScores();
 }, 15000);
 
-if (window.trendsTypeDesktop) {
+if (window.cursorXGridDesktop) {
   document.querySelector("#fullscreen-hint").hidden = false;
 }
 
-if (window.trendsTypeUpdates) {
+if (window.cursorXGridUpdates) {
   const notice = document.querySelector("#update-notice");
   const message = document.querySelector("#update-message");
   const progress = document.querySelector("#update-progress");
@@ -1493,7 +1493,7 @@ if (window.trendsTypeUpdates) {
       message.textContent = `Nieuwe versie ${updateState.version} is beschikbaar.`;
       action.textContent = "Update downloaden";
     } else if (updateState.status === "downloaded") {
-      message.textContent = `Versie ${updateState.version} is klaar. TrendsType sluit kort en start automatisch opnieuw.`;
+      message.textContent = `Versie ${updateState.version} is klaar. CursorXGrid sluit kort en start automatisch opnieuw.`;
       action.textContent = "Installeren en herstarten";
     } else if (updateState.status === "downloading") {
       if (Number.isFinite(updateState.percent)) {
@@ -1505,7 +1505,7 @@ if (window.trendsTypeUpdates) {
       }
     } else if (updateState.status === "installing") {
       message.textContent =
-        "Update wordt geïnstalleerd. TrendsType start zo opnieuw.";
+        "Update wordt geïnstalleerd. CursorXGrid start zo opnieuw.";
     } else {
       message.textContent = updateState.message || "Updatecontrole mislukt.";
     }
@@ -1517,8 +1517,8 @@ if (window.trendsTypeUpdates) {
     showUpdateState();
   }
 
-  window.trendsTypeUpdates.onState(receiveUpdate);
-  window.trendsTypeUpdates
+  window.cursorXGridUpdates.onState(receiveUpdate);
+  window.cursorXGridUpdates
     .getState()
     .then(receiveUpdate)
     .catch((error) => {
@@ -1532,9 +1532,9 @@ if (window.trendsTypeUpdates) {
     if (isTestInProgress()) return;
     try {
       if (updateState.status === "available")
-        await window.trendsTypeUpdates.download();
+        await window.cursorXGridUpdates.download();
       else if (updateState.status === "downloaded")
-        await window.trendsTypeUpdates.install();
+        await window.cursorXGridUpdates.install();
     } catch (error) {
       console.error("Updateactie mislukt:", error);
       receiveUpdate({ status: "error", message: "Updateactie mislukt." });

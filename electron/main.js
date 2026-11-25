@@ -18,13 +18,13 @@ const { createUpdates } = require("./updates");
 
 protocol.registerSchemesAsPrivileged([
   {
-    scheme: "trendstype",
+    scheme: "cursorxgrid",
     privileges: { standard: true, secure: true, supportFetchAPI: true },
   },
 ]);
 
 if (process.platform === "win32")
-  app.setAppUserModelId("com.trendstype.desktop");
+  app.setAppUserModelId("com.cursorxgrid.desktop");
 
 let mainWindow;
 let updates;
@@ -48,11 +48,11 @@ app
   .whenReady()
   .then(async () => {
     const configuredOrigin = app.isPackaged
-      ? require("../package.json").trendstypeApiOrigin
-      : process.env.TRENDSTYPE_API_URL;
+      ? require("../package.json").cursorxgridApiOrigin
+      : process.env.CURSORXGRID_API_URL;
     const apiOrigin = parseApiOrigin(configuredOrigin);
     protocol.handle(
-      "trendstype",
+      "cursorxgrid",
       createProtocolHandler({
         publicDir: path.join(__dirname, "..", "public"),
         apiOrigin,
@@ -123,7 +123,7 @@ app
     if (app.isPackaged) void updates.check();
   })
   .catch((error) => {
-    console.error("TrendsType desktop kon niet worden gestart:", error);
+    console.error("CursorXGrid desktop kon niet worden gestart:", error);
     app.quit();
   });
 

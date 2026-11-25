@@ -336,7 +336,7 @@ async function startServer() {
   }
 
   app.listen(PORT, HOST, () => {
-    console.log(`TrendsType is beschikbaar op http://${HOST}:${PORT}`);
+    console.log(`CursorXGrid is beschikbaar op http://${HOST}:${PORT}`);
     console.log(
       SUPABASE_ENABLED
         ? "Scores worden opgeslagen in Supabase."
@@ -346,6 +346,6 @@ async function startServer() {
 }
 
 startServer().catch((error) => {
-  console.error("TrendsType kon niet worden gestart:", error);
+  console.error("CursorXGrid kon niet worden gestart:", error);
   process.exitCode = 1;
 });

@@ -1,19 +1,15 @@
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 
-const APP_ORIGIN = "trendstype://app";
+const APP_ORIGIN = "cursorxgrid://app";
 const FILES = new Map([
   ["/", "index.html"],
   ["/index.html", "index.html"],
   ["/app.js", "app.js"],
   ["/word-banks.js", "word-banks.js"],
   ["/style.css", "style.css"],
-  ["/assets/company-logo.png", "assets/company-logo.png"],
+  ["/assets/cursorxgrid-logo.png", "assets/cursorxgrid-logo.png"],
   ["/assets/github-logo.webp", "assets/github-logo.webp"],
-  [
-    "/assets/keyboard-photo-horizontal.png",
-    "assets/keyboard-photo-horizontal.png",
-  ],
 ]);
 const API_ROUTES = new Map([
   ["/api/scores", new Set(["GET", "POST"])],
@@ -35,7 +31,7 @@ function parseApiOrigin(value) {
     url.hash
   ) {
     throw new Error(
-      "TRENDSTYPE_API_URL moet een HTTPS-origin zonder pad, inloggegevens of query zijn.",
+      "CURSORXGRID_API_URL moet een HTTPS-origin zonder pad, inloggegevens of query zijn.",
     );
   }
   return url.origin;
@@ -55,7 +51,7 @@ function createProtocolHandler({
   return async (request) => {
     const url = new URL(request.url);
     if (
-      url.protocol !== "trendstype:" ||
+      url.protocol !== "cursorxgrid:" ||
       url.hostname !== "app" ||
       url.port ||
       url.username ||

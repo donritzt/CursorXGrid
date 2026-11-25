@@ -12,7 +12,7 @@ if not exist "%CLOUDFLARED_EXE%" (
 powershell -NoProfile -Command "try { $response = Invoke-WebRequest -Uri 'http://127.0.0.1:3000/' -UseBasicParsing -TimeoutSec 3; if ($response.StatusCode -eq 200) { exit 0 }; exit 1 } catch { exit 1 }"
 if errorlevel 1 goto server_not_running
 
-echo TrendsType is bereikbaar. De Quick Tunnel-URL verschijnt hieronder.
+echo CursorXGrid is bereikbaar. De Quick Tunnel-URL verschijnt hieronder.
 echo Laat dit venster open zolang collega's de app gebruiken.
 echo Druk op Ctrl+C om de tunnel te stoppen.
 echo.
@@ -32,8 +32,8 @@ pause
 exit /b 1
 
 :server_not_running
-echo TrendsType reageert niet op http://127.0.0.1:3000.
-echo Start eerst scripts\start-trendstype.bat en probeer het opnieuw.
+echo CursorXGrid reageert niet op http://127.0.0.1:3000.
+echo Start eerst scripts\start-cursorxgrid.bat en probeer het opnieuw.
 pause
 exit /b 1
 

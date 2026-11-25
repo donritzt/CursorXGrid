@@ -30,19 +30,19 @@ test("desktop protocol limits routes and reports an unconfigured API", async () 
       throw new Error("unexpected fetch");
     },
   });
-  const response = await handler(new Request("trendstype://app/api/scores"));
+  const response = await handler(new Request("cursorxgrid://app/api/scores"));
   assert.equal(response.status, 503);
   assert.match((await response.json()).error, /niet ingesteld/);
   assert.equal(
-    (await handler(new Request("trendstype://app/api/sessions"))).status,
+    (await handler(new Request("cursorxgrid://app/api/sessions"))).status,
     405,
   );
   assert.equal(
-    (await handler(new Request("trendstype://app/.env"))).status,
+    (await handler(new Request("cursorxgrid://app/.env"))).status,
     404,
   );
   assert.equal(
-    (await handler(new Request("trendstype://other/app.js"))).status,
+    (await handler(new Request("cursorxgrid://other/app.js"))).status,
     400,
   );
 });
@@ -58,11 +58,33 @@ test("desktop protocol serves only allowed files with a content security policy"
       });
     },
   });
-  const response = await handler(new Request("trendstype://app/"));
+  const response = await handler(new Request("cursorxgrid://app/"));
   assert.match(fetchedUrl, /public\/index\.html$/);
   assert.match(
     response.headers.get("content-security-policy"),
     /script-src 'self'/,
+  );
+});
+
+test("desktop protocol serves the new logo but rejects unlisted assets", async () => {
+  let fetchedUrl;
+  const handler = createProtocolHandler({
+    publicDir: "public",
+    fetch: async (url) => {
+      fetchedUrl = url;
+      return new Response("logo", {
+        headers: { "content-type": "image/png" },
+      });
+    },
+  });
+  const logo = await handler(
+    new Request("cursorxgrid://app/assets/cursorxgrid-logo.png"),
+  );
+  assert.equal(logo.status, 200);
+  assert.match(fetchedUrl, /public\/assets\/cursorxgrid-logo\.png$/);
+  assert.equal(
+    (await handler(new Request("cursorxgrid://app/assets/unknown.png"))).status,
+    404,
   );
 });
 
@@ -77,7 +99,7 @@ test("API proxy preserves allowed JSON requests but does not follow redirects", 
     },
   });
   const response = await handler(
-    new Request("trendstype://app/api/sessions", {
+    new Request("cursorxgrid://app/api/sessions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -106,7 +128,7 @@ test("API proxy preserves allowed JSON requests but does not follow redirects", 
       }),
   });
   assert.equal(
-    (await redirect(new Request("trendstype://app/api/scores"))).status,
+    (await redirect(new Request("cursorxgrid://app/api/scores"))).status,
     502,
   );
 });
@@ -122,12 +144,12 @@ test("API proxy reports network failures and rejects oversized requests", async 
     log: (...args) => errors.push(args),
   });
   assert.equal(
-    (await handler(new Request("trendstype://app/api/scores"))).status,
+    (await handler(new Request("cursorxgrid://app/api/scores"))).status,
     503,
   );
   assert.equal(errors.length, 1);
   const response = await handler(
-    new Request("trendstype://app/api/scores", {
+    new Request("cursorxgrid://app/api/scores", {
       method: "POST",
       body: "x".repeat(16385),
     }),
