@@ -1299,7 +1299,6 @@ els.panel.addEventListener("click", (event) => {
     return;
   focusInput();
 });
-document.querySelector("#restart-button").addEventListener("click", resetTest);
 document.querySelector("#results-restart").addEventListener("click", resetTest);
 els.replayButton.addEventListener("click", replaySameText);
 els.scoreForm.addEventListener("submit", async (event) => {

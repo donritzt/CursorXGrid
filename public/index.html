@@ -13,14 +13,13 @@
   <body>
     <div class="top-accent">
       <span class="top-accent-message"
-        >CXG · De snelste Typer vindt de beste resultaten!</span
+        >CXG · CursorXGrid · “Typ scherp. Breek je record.”</span
       >
     </div>
     <div class="page-shell">
       <header class="topbar">
         <a class="brand" href="/" aria-label="CursorXGrid startpagina">
           <img class="brand-logo" src="/assets/cursorxgrid-logo.png" alt="" />
-          <span class="brand-name">CursorXGrid</span>
         </a>
         <nav class="nav-menu" aria-label="Navigatie">
           <button
@@ -75,127 +74,7 @@
           role="tabpanel"
           aria-labelledby="test-tab"
         >
-          <div class="section-heading">
-            <h1 class="visually-hidden" id="test-heading">Test</h1>
-            <button
-              class="icon-button"
-              id="restart-button"
-              type="button"
-              aria-label="Test opnieuw starten"
-              title="Opnieuw starten (Tab + Enter)"
-            >
-              ↻
-            </button>
-          </div>
-
-          <div class="settings" aria-label="Testinstellingen">
-            <div class="setting-group" role="group" aria-label="Testmodus">
-              <button
-                class="setting-button mode-button active"
-                type="button"
-                data-mode="time"
-              >
-                tijd
-              </button>
-              <button
-                class="setting-button mode-button"
-                type="button"
-                data-mode="words"
-              >
-                woorden
-              </button>
-            </div>
-            <span class="setting-divider" aria-hidden="true"></span>
-            <div
-              class="setting-group"
-              id="time-options"
-              role="group"
-              aria-label="Tijdsduur"
-            >
-              <button
-                class="setting-button value-button active"
-                type="button"
-                data-value="15"
-              >
-                15
-              </button>
-              <button
-                class="setting-button value-button"
-                type="button"
-                data-value="30"
-              >
-                30
-              </button>
-              <button
-                class="setting-button value-button"
-                type="button"
-                data-value="60"
-              >
-                60
-              </button>
-            </div>
-            <div
-              class="setting-group hidden"
-              id="word-options"
-              role="group"
-              aria-label="Aantal woorden"
-            >
-              <button
-                class="setting-button value-button"
-                type="button"
-                data-value="10"
-              >
-                10
-              </button>
-              <button
-                class="setting-button value-button"
-                type="button"
-                data-value="25"
-              >
-                25
-              </button>
-              <button
-                class="setting-button value-button"
-                type="button"
-                data-value="50"
-              >
-                50
-              </button>
-            </div>
-            <span class="setting-divider" aria-hidden="true"></span>
-            <div class="setting-group" role="group" aria-label="Taal">
-              <button
-                class="setting-button language-button active"
-                type="button"
-                data-language="nl"
-                aria-pressed="true"
-              >
-                Nederlands
-              </button>
-              <button
-                class="setting-button language-button"
-                type="button"
-                data-language="en"
-                aria-pressed="false"
-              >
-                English
-              </button>
-            </div>
-            <div
-              class="setting-group"
-              role="group"
-              aria-label="Moeilijkheidsgraad"
-            >
-              <select
-                class="difficulty-select"
-                id="difficulty-select"
-                aria-label="Moeilijkheidsgraad"
-              >
-                <option value="normal">Normaal</option>
-                <option value="1k">1k</option>
-              </select>
-            </div>
-          </div>
+          <h1 class="visually-hidden" id="test-heading">Test</h1>
 
           <div class="test-meta" aria-live="polite">
             <div class="timer-wrap">
@@ -205,184 +84,294 @@
             <p class="test-hint" id="test-hint"></p>
           </div>
 
-          <div class="typing-panel" id="typing-panel">
-            <div class="words" id="words" aria-label="Te typen tekst"></div>
-            <span
-              class="typing-caret ghost-caret"
-              id="ghost-caret"
-              aria-hidden="true"
-              hidden
-            ></span>
-            <span
-              class="typing-caret"
-              id="typing-caret"
-              aria-hidden="true"
-            ></span>
-            <input
-              id="typing-input"
-              class="typing-input"
-              type="text"
-              autocomplete="off"
-              autocapitalize="off"
-              spellcheck="false"
-              aria-label="Typ de getoonde woorden"
-              aria-describedby="test-hint"
-            />
-            <div class="live-wpm" aria-live="off">
-              <span id="live-wpm">0</span
-              ><span class="live-wpm-label">wpm</span>
-            </div>
-            <div class="race-hud" id="race-hud" aria-live="polite" hidden>
-              <span class="race-score"
-                ><strong id="race-score">0</strong><span>woorden</span></span
-              >
-              <span class="race-bonus-status" id="race-bonus-status"></span>
-            </div>
-            <section
-              class="race-countdown"
-              id="race-countdown"
-              aria-live="assertive"
-              aria-label="Time Race begint over"
-              hidden
-            >
-              <p class="race-countdown-kicker">Time Race</p>
-              <div class="race-countdown-number-wrap">
-                <strong class="race-countdown-number" id="race-countdown-number"
-                  >3</strong
+          <div class="typing-layout">
+            <div class="typing-panel" id="typing-panel">
+              <div class="words" id="words" aria-label="Te typen tekst"></div>
+              <span
+                class="typing-caret ghost-caret"
+                id="ghost-caret"
+                aria-hidden="true"
+                hidden
+              ></span>
+              <span
+                class="typing-caret"
+                id="typing-caret"
+                aria-hidden="true"
+              ></span>
+              <input
+                id="typing-input"
+                class="typing-input"
+                type="text"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+                aria-label="Typ de getoonde woorden"
+                aria-describedby="test-hint"
+              />
+              <div class="live-wpm" aria-live="off">
+                <span id="live-wpm">0</span
+                ><span class="live-wpm-label">wpm</span>
+              </div>
+              <div class="race-hud" id="race-hud" aria-live="polite" hidden>
+                <span class="race-score"
+                  ><strong id="race-score">0</strong><span>woorden</span></span
                 >
+                <span class="race-bonus-status" id="race-bonus-status"></span>
               </div>
-              <p class="race-countdown-ready">Maak je klaar</p>
-            </section>
-            <section
-              class="typing-results"
-              id="typing-results"
-              aria-label="Testresultaten"
-              aria-live="polite"
-              hidden
-            >
-              <div class="results-overview">
-                <div class="results-primary-stats">
-                  <div class="results-stat">
-                    <span class="results-value" id="result-wpm">0</span>
-                    <span class="results-label">WPM</span>
-                  </div>
-                  <div class="results-stat">
-                    <span class="results-value" id="result-accuracy">0%</span>
-                    <span class="results-label">Nauwkeurigheid</span>
-                  </div>
-                </div>
-                <div class="results-chart-wrap">
-                  <div class="results-chart-heading">
-                    <h3 id="results-chart-heading">Tempo tijdens de test</h3>
-                    <span>Raw WPM per seconde</span>
-                  </div>
-                  <svg
-                    class="results-chart"
-                    id="results-chart"
-                    viewBox="0 0 640 190"
-                    preserveAspectRatio="none"
-                    role="img"
-                    aria-labelledby="results-chart-title results-chart-caption"
-                  >
-                    <title id="results-chart-title">
-                      Typtempo tijdens de test
-                    </title>
-                  </svg>
-                  <p class="results-chart-caption" id="results-chart-caption">
-                    Een daling betekent dat je tempo lager lag of dat je even
-                    pauzeerde.
-                  </p>
-                </div>
-              </div>
-              <div class="results-secondary-stats">
-                <div class="results-stat">
-                  <span class="results-value" id="result-raw-wpm">0</span>
-                  <span class="results-label">Raw WPM</span>
-                </div>
-                <div class="results-stat">
-                  <span class="results-value" id="result-errors">0</span>
-                  <span class="results-label">Fouten</span>
-                </div>
-                <div class="results-stat">
-                  <span class="results-value" id="result-consistency">0%</span>
-                  <span
-                    class="results-label"
-                    title="100% betekent dat je tempo gelijk bleef; sterke snelheidswisselingen verlagen dit cijfer."
-                    >Consistentie</span
+              <section
+                class="race-countdown"
+                id="race-countdown"
+                aria-live="assertive"
+                aria-label="Time Race begint over"
+                hidden
+              >
+                <p class="race-countdown-kicker">Time Race</p>
+                <div class="race-countdown-number-wrap">
+                  <strong class="race-countdown-number" id="race-countdown-number"
+                    >3</strong
                   >
                 </div>
-              </div>
-              <form class="score-save-form" id="score-save-form" hidden>
-                <div class="score-save-fields">
-                  <label for="score-name">Naam voor het scorebord</label>
-                  <input
-                    id="score-name"
-                    name="name"
-                    type="text"
-                    maxlength="24"
-                    autocomplete="name"
-                    placeholder="Je naam"
-                    required
-                  />
+                <p class="race-countdown-ready">Maak je klaar</p>
+              </section>
+              <section
+                class="typing-results"
+                id="typing-results"
+                aria-label="Testresultaten"
+                aria-live="polite"
+                hidden
+              >
+                <div class="results-overview">
+                  <div class="results-primary-stats">
+                    <div class="results-stat">
+                      <span class="results-value" id="result-wpm">0</span>
+                      <span class="results-label">WPM</span>
+                    </div>
+                    <div class="results-stat">
+                      <span class="results-value" id="result-accuracy">0%</span>
+                      <span class="results-label">Nauwkeurigheid</span>
+                    </div>
+                  </div>
+                  <div class="results-chart-wrap">
+                    <div class="results-chart-heading">
+                      <h3 id="results-chart-heading">Tempo tijdens de test</h3>
+                      <span>Raw WPM per seconde</span>
+                    </div>
+                    <svg
+                      class="results-chart"
+                      id="results-chart"
+                      viewBox="0 0 640 190"
+                      preserveAspectRatio="none"
+                      role="img"
+                      aria-labelledby="results-chart-title results-chart-caption"
+                    >
+                      <title id="results-chart-title">
+                        Typtempo tijdens de test
+                      </title>
+                    </svg>
+                    <p class="results-chart-caption" id="results-chart-caption">
+                      Een daling betekent dat je tempo lager lag of dat je even
+                      pauzeerde.
+                    </p>
+                  </div>
+                </div>
+                <div class="results-secondary-stats">
+                  <div class="results-stat">
+                    <span class="results-value" id="result-raw-wpm">0</span>
+                    <span class="results-label">Raw WPM</span>
+                  </div>
+                  <div class="results-stat">
+                    <span class="results-value" id="result-errors">0</span>
+                    <span class="results-label">Fouten</span>
+                  </div>
+                  <div class="results-stat">
+                    <span class="results-value" id="result-consistency">0%</span>
+                    <span
+                      class="results-label"
+                      title="100% betekent dat je tempo gelijk bleef; sterke snelheidswisselingen verlagen dit cijfer."
+                      >Consistentie</span
+                    >
+                  </div>
+                </div>
+                <form class="score-save-form" id="score-save-form" hidden>
+                  <div class="score-save-fields">
+                    <label for="score-name">Naam voor het scorebord</label>
+                    <input
+                      id="score-name"
+                      name="name"
+                      type="text"
+                      maxlength="24"
+                      autocomplete="name"
+                      placeholder="Je naam"
+                      required
+                    />
+                    <button
+                      class="results-restart score-save-button"
+                      id="score-save-button"
+                      type="submit"
+                      disabled
+                    >
+                      Score opslaan
+                    </button>
+                  </div>
+                  <p
+                    class="score-save-status"
+                    id="score-save-status"
+                    role="status"
+                    aria-live="polite"
+                  ></p>
+                </form>
+                <div class="results-actions">
                   <button
-                    class="results-restart score-save-button"
-                    id="score-save-button"
-                    type="submit"
-                    disabled
+                    class="results-restart"
+                    id="results-restart"
+                    type="button"
                   >
-                    Score opslaan
+                    Opnieuw typen
+                  </button>
+                  <button
+                    class="results-replay"
+                    id="results-replay"
+                    type="button"
+                  >
+                    Zelfde tekst opnieuw
                   </button>
                 </div>
-                <p
-                  class="score-save-status"
-                  id="score-save-status"
-                  role="status"
-                  aria-live="polite"
-                ></p>
-              </form>
-              <div class="results-actions">
+                <p class="results-hint">
+                  <kbd>enter</kbd> dezelfde tekst opnieuw <span>·</span>
+                  <kbd>esc</kbd> terug naar de typetest
+                </p>
+              </section>
+              <section
+                class="race-game-over"
+                id="race-game-over"
+                aria-labelledby="race-game-over-title"
+                aria-live="polite"
+                hidden
+              >
+                <p class="race-game-over-kicker">Time Race</p>
+                <h2 id="race-game-over-title">Tijd is op</h2>
+                <div class="race-final-score">
+                  <strong id="race-final-score">0</strong><span>woorden</span>
+                </div>
+                <p class="race-bonus-total" id="race-bonus-total"></p>
+                <div class="race-game-over-actions">
+                  <button class="results-restart" id="race-restart" type="button">
+                    Opnieuw spelen
+                  </button>
+                  <button class="results-replay" id="race-exit" type="button">
+                    Terug naar typetest
+                  </button>
+                </div>
+              </section>
+            </div>
+            <div class="settings" aria-label="Testinstellingen">
+              <div class="setting-group" role="group" aria-label="Testmodus">
                 <button
-                  class="results-restart"
-                  id="results-restart"
+                  class="setting-button mode-button active"
                   type="button"
+                  data-mode="time"
                 >
-                  Opnieuw typen
+                  tijd
                 </button>
                 <button
-                  class="results-replay"
-                  id="results-replay"
+                  class="setting-button mode-button"
                   type="button"
+                  data-mode="words"
                 >
-                  Zelfde tekst opnieuw
+                  woorden
                 </button>
               </div>
-              <p class="results-hint">
-                <kbd>enter</kbd> dezelfde tekst opnieuw <span>·</span>
-                <kbd>esc</kbd> terug naar de typetest
-              </p>
-            </section>
-            <section
-              class="race-game-over"
-              id="race-game-over"
-              aria-labelledby="race-game-over-title"
-              aria-live="polite"
-              hidden
-            >
-              <p class="race-game-over-kicker">Time Race</p>
-              <h2 id="race-game-over-title">Tijd is op</h2>
-              <div class="race-final-score">
-                <strong id="race-final-score">0</strong><span>woorden</span>
-              </div>
-              <p class="race-bonus-total" id="race-bonus-total"></p>
-              <div class="race-game-over-actions">
-                <button class="results-restart" id="race-restart" type="button">
-                  Opnieuw spelen
+              <span class="setting-divider" aria-hidden="true"></span>
+              <div
+                class="setting-group"
+                id="time-options"
+                role="group"
+                aria-label="Tijdsduur"
+              >
+                <button
+                  class="setting-button value-button active"
+                  type="button"
+                  data-value="15"
+                >
+                  15
                 </button>
-                <button class="results-replay" id="race-exit" type="button">
-                  Terug naar typetest
+                <button
+                  class="setting-button value-button"
+                  type="button"
+                  data-value="30"
+                >
+                  30
+                </button>
+                <button
+                  class="setting-button value-button"
+                  type="button"
+                  data-value="60"
+                >
+                  60
                 </button>
               </div>
-            </section>
+              <div
+                class="setting-group hidden"
+                id="word-options"
+                role="group"
+                aria-label="Aantal woorden"
+              >
+                <button
+                  class="setting-button value-button"
+                  type="button"
+                  data-value="10"
+                >
+                  10
+                </button>
+                <button
+                  class="setting-button value-button"
+                  type="button"
+                  data-value="25"
+                >
+                  25
+                </button>
+                <button
+                  class="setting-button value-button"
+                  type="button"
+                  data-value="50"
+                >
+                  50
+                </button>
+              </div>
+              <span class="setting-divider" aria-hidden="true"></span>
+              <div class="setting-group" role="group" aria-label="Taal">
+                <button
+                  class="setting-button language-button active"
+                  type="button"
+                  data-language="nl"
+                  aria-pressed="true"
+                >
+                  Nederlands
+                </button>
+                <button
+                  class="setting-button language-button"
+                  type="button"
+                  data-language="en"
+                  aria-pressed="false"
+                >
+                  English
+                </button>
+              </div>
+              <div
+                class="setting-group"
+                role="group"
+                aria-label="Moeilijkheidsgraad"
+              >
+                <select
+                  class="difficulty-select"
+                  id="difficulty-select"
+                  aria-label="Moeilijkheidsgraad"
+                >
+                  <option value="normal">Normaal</option>
+                  <option value="1k">1k</option>
+                </select>
+              </div>
+            </div>
           </div>
           <p class="keyboard-hint">
             <kbd>tab</kbd> + <kbd>enter</kbd> herstart <span>·</span>
