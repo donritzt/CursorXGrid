@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#111317" />
+    <meta name="theme-color" content="#1d1f21" />
     <meta name="description" content="CursorXGrid (CXG): een typetest." />
     <title>CursorXGrid</title>
     <link rel="icon" type="image/png" href="/assets/cursorxgrid-logo.png" />
@@ -11,57 +11,47 @@
     <script type="module" src="/app.js"></script>
   </head>
   <body>
-    <div class="top-accent">
-      <span class="top-accent-message"
-        >CXG · CursorXGrid · “Typ scherp. Breek je record.”</span
-      >
-    </div>
     <div class="page-shell">
       <header class="topbar">
-        <a class="brand" href="/" aria-label="CursorXGrid startpagina">
-          <img class="brand-logo" src="/assets/cursorxgrid-logo.png" alt="" />
-        </a>
+        <span class="site-name">Cursor<span>X</span>Grid</span>
         <nav class="nav-menu" aria-label="Navigatie">
-          <button
-            class="nav-menu-toggle"
-            id="nav-menu-toggle"
-            type="button"
-            aria-expanded="false"
-            aria-controls="main-tabs"
-          >
-            <span id="current-tab-label">Typetest</span>
-            <span class="nav-chevron" aria-hidden="true">⌄</span>
-          </button>
           <div
             class="main-tabs"
             id="main-tabs"
             role="tablist"
             aria-label="Pagina's"
-            aria-hidden="true"
           >
             <button
-              class="main-tab active"
+              class="main-tab brand active"
               id="test-tab"
               type="button"
               role="tab"
+              aria-label="Typetest"
+              title="Typetest"
               aria-selected="true"
               aria-controls="test-panel"
               tabindex="0"
               data-tab="test"
             >
-              Typetest
+              <img class="brand-logo" src="/assets/cursorxgrid-logo.png" alt="" />
+              <span class="brand-wordmark" aria-hidden="true">C<span>X</span>G</span>
             </button>
             <button
               class="main-tab"
               id="scores-tab"
               type="button"
               role="tab"
+              aria-label="Scores"
+              title="Scores"
               aria-selected="false"
               aria-controls="scores-panel"
               tabindex="-1"
               data-tab="scores"
             >
-              Scores
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="16" rx="2" />
+                <path d="M7 3v4M17 3v4M3 10h18M7 14h2M11 14h2M15 14h2M7 17h2M11 17h2" />
+              </svg>
             </button>
           </div>
         </nav>
@@ -76,10 +66,13 @@
         >
           <h1 class="visually-hidden" id="test-heading">Test</h1>
 
-          <div class="test-meta" aria-live="polite">
+          <div class="test-meta" aria-live="off">
             <div class="timer-wrap">
               <span class="meta-label" id="progress-label">tijd</span>
               <span class="timer" id="timer">15</span>
+            </div>
+            <div class="live-wpm">
+              <span id="live-wpm">0</span><span class="live-wpm-label">wpm</span>
             </div>
             <p class="test-hint" id="test-hint"></p>
           </div>
@@ -108,10 +101,6 @@
                 aria-label="Typ de getoonde woorden"
                 aria-describedby="test-hint"
               />
-              <div class="live-wpm" aria-live="off">
-                <span id="live-wpm">0</span
-                ><span class="live-wpm-label">wpm</span>
-              </div>
               <div class="race-hud" id="race-hud" aria-live="polite" hidden>
                 <span class="race-score"
                   ><strong id="race-score">0</strong><span>woorden</span></span
@@ -265,33 +254,21 @@
               </section>
             </div>
             <div class="settings" aria-label="Testinstellingen">
-              <div class="setting-group" role="group" aria-label="Testmodus">
+              <div class="setting-group setting-mode" role="group" aria-label="Tijdsduur">
                 <button
                   class="setting-button mode-button active"
                   type="button"
                   data-mode="time"
+                  aria-pressed="true"
                 >
                   tijd
                 </button>
-                <button
-                  class="setting-button mode-button"
-                  type="button"
-                  data-mode="words"
-                >
-                  woorden
-                </button>
-              </div>
-              <span class="setting-divider" aria-hidden="true"></span>
-              <div
-                class="setting-group"
-                id="time-options"
-                role="group"
-                aria-label="Tijdsduur"
-              >
+                <div class="setting-group" id="time-options">
                 <button
                   class="setting-button value-button active"
                   type="button"
                   data-value="15"
+                  aria-pressed="true"
                 >
                   15
                 </button>
@@ -299,6 +276,7 @@
                   class="setting-button value-button"
                   type="button"
                   data-value="30"
+                  aria-pressed="false"
                 >
                   30
                 </button>
@@ -306,20 +284,28 @@
                   class="setting-button value-button"
                   type="button"
                   data-value="60"
+                  aria-pressed="false"
                 >
                   60
                 </button>
+                </div>
               </div>
-              <div
-                class="setting-group hidden"
-                id="word-options"
-                role="group"
-                aria-label="Aantal woorden"
-              >
+              <span class="setting-divider" aria-hidden="true"></span>
+              <div class="setting-group setting-mode" role="group" aria-label="Aantal woorden">
+                <button
+                  class="setting-button mode-button"
+                  type="button"
+                  data-mode="words"
+                  aria-pressed="false"
+                >
+                  woorden
+                </button>
+                <div class="setting-group" id="word-options">
                 <button
                   class="setting-button value-button"
                   type="button"
                   data-value="10"
+                  aria-pressed="false"
                 >
                   10
                 </button>
@@ -327,6 +313,7 @@
                   class="setting-button value-button"
                   type="button"
                   data-value="25"
+                  aria-pressed="false"
                 >
                   25
                 </button>
@@ -334,9 +321,11 @@
                   class="setting-button value-button"
                   type="button"
                   data-value="50"
+                  aria-pressed="false"
                 >
                   50
                 </button>
+                </div>
               </div>
               <span class="setting-divider" aria-hidden="true"></span>
               <div class="setting-group" role="group" aria-label="Taal">
@@ -373,10 +362,6 @@
               </div>
             </div>
           </div>
-          <p class="keyboard-hint">
-            <kbd>tab</kbd> + <kbd>enter</kbd> herstart <span>·</span>
-            <kbd>esc</kbd> stopt <span>·</span> <kbd>backspace</kbd> corrigeert
-          </p>
         </section>
 
         <section
@@ -452,32 +437,51 @@
         <span class="time-race-title">Time Race</span>
         <span class="time-race-subtitle">10 seconden</span>
       </button>
+      <footer class="page-footer">
+        <a
+          class="github-link"
+          href="https://github.com/donritzt"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub-profiel van donritzt (opent in een nieuw tabblad)"
+        >
+          <img src="/assets/github-logo.webp" alt="" />
+          <span>donritzt</span>
+        </a>
+        <p class="keyboard-hint">
+          <kbd>tab</kbd> + <kbd>enter</kbd> herstart <span>·</span>
+          <kbd>esc</kbd> stopt
+        </p>
+        <label class="font-control">
+          <span>Aa</span>
+          <select id="font-select" aria-label="Lettertype">
+            <option value="inter">Inter</option>
+            <option value="system">Segoe UI</option>
+            <option value="mono">JetBrains Mono</option>
+            <option value="georgia">Georgia</option>
+          </select>
+        </label>
+        <label class="theme-control">
+          <select id="theme-select" aria-label="Kleurthema">
+            <option value="regular">Regular</option>
+            <option value="amber" selected>Amber</option>
+            <option value="coral">Koraal</option>
+            <option value="rose">Roze</option>
+            <option value="violet">Violet</option>
+            <option value="indigo">Indigo</option>
+            <option value="sky">Hemelblauw</option>
+            <option value="cyan">Cyaan</option>
+            <option value="mint">Mint</option>
+            <option value="lime">Limoen</option>
+            <option value="gold">Goud</option>
+          </select>
+        </label>
+      </footer>
     </div>
 
     <span class="fullscreen-hint" id="fullscreen-hint" hidden>
       F11: volledig scherm aan/uit
     </span>
-    <a
-      class="github-link"
-      href="https://github.com/donritzt"
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="GitHub-profiel van donritzt (opent in een nieuw tabblad)"
-    >
-      <img src="/assets/github-logo.webp" alt="" />
-      <span>donritzt</span>
-    </a>
-
-    <label class="font-control">
-      <span>Aa</span>
-      <select id="font-select" aria-label="Lettertype">
-        <option value="inter">Inter</option>
-        <option value="system">Segoe UI</option>
-        <option value="mono">JetBrains Mono</option>
-        <option value="georgia">Georgia</option>
-      </select>
-    </label>
-
     <aside class="update-notice" id="update-notice" aria-live="polite" hidden>
       <button id="update-dismiss" type="button" aria-label="Melding sluiten">
         ×

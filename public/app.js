@@ -87,6 +87,7 @@ const els = {
   raceRestart: document.querySelector("#race-restart"),
   raceExit: document.querySelector("#race-exit"),
   fontSelect: document.querySelector("#font-select"),
+  themeSelect: document.querySelector("#theme-select"),
   toast: document.querySelector("#toast"),
 };
 
@@ -186,6 +187,7 @@ function applyTestReset({ words, bestRun = null, isReplay = false } = {}) {
     "time-race-countdown",
     "time-race-finished",
   );
+  setTestControlsInert(false);
   els.results.hidden = true;
   els.scoreForm.hidden = true;
   els.scoreForm.reset();
@@ -202,6 +204,12 @@ function applyTestReset({ words, bestRun = null, isReplay = false } = {}) {
   layoutWords();
   renderWords();
   focusInput();
+}
+
+function setTestControlsInert(inert) {
+  document.querySelector(".nav-menu").inert = inert;
+  document.querySelector(".settings").inert = inert;
+  document.querySelector(".page-footer").inert = inert;
 }
 
 function layoutWords() {
@@ -243,23 +251,30 @@ function layoutWords() {
 
 function renderWords() {
   const fragment = document.createDocumentFragment();
+  const previousLines = new Set(
+    [...els.words.querySelectorAll(".word-line")].map((line) => line.dataset.lineIndex),
+  );
   const activeLineIndex =
     state.wordLineIndexes[state.wordIndex] ?? state.lines.length - 1;
   const lineChanged =
     state.renderedLineIndex !== null &&
     activeLineIndex !== state.renderedLineIndex;
+  const visibleLineCount = state.gameMode === "time-race" ? 3 : 4;
   const firstLine = Math.max(
     0,
-    Math.min(activeLineIndex - 1, state.lines.length - 3),
+    Math.min(activeLineIndex - 1, state.lines.length - visibleLineCount),
   );
-  const lastLine = Math.min(state.lines.length, firstLine + 3);
+  const lastLine = Math.min(state.lines.length, firstLine + visibleLineCount);
 
   for (let lineIndex = firstLine; lineIndex < lastLine; lineIndex += 1) {
     const lineElement = document.createElement("div");
     lineElement.className = "word-line";
+    lineElement.dataset.lineIndex = String(lineIndex);
+    if (lineChanged && !previousLines.has(String(lineIndex))) {
+      lineElement.classList.add("line-enter");
+    }
     if (lineIndex === activeLineIndex) {
       lineElement.classList.add("is-current");
-      if (lineChanged) lineElement.classList.add("line-enter");
     } else {
       lineElement.classList.add(
         lineIndex < activeLineIndex ? "is-previous" : "is-next",
@@ -319,6 +334,28 @@ function renderWords() {
 
   state.renderedLineIndex = activeLineIndex;
   els.words.replaceChildren(fragment);
+  positionCaret();
+  updateGhostProgress();
+}
+
+function advanceToNextWord() {
+  const previousWord = els.words.querySelector(
+    `[data-word-index="${state.wordIndex - 1}"]`,
+  );
+  const nextWord = els.words.querySelector(
+    `[data-word-index="${state.wordIndex}"]`,
+  );
+  if (
+    !previousWord ||
+    !nextWord ||
+    state.wordLineIndexes[state.wordIndex] !== state.renderedLineIndex
+  ) {
+    renderWords();
+    return;
+  }
+  previousWord.querySelector(".current")?.classList.remove("current");
+  previousWord.querySelectorAll(".extra-letter").forEach((letter) => letter.remove());
+  nextWord.firstElementChild?.classList.add("current");
   positionCaret();
   updateGhostProgress();
 }
@@ -396,6 +433,7 @@ function updateWordAfterBackspace() {
 
   const target = state.words[state.wordIndex];
   const charIndex = state.currentInput.length;
+  word.querySelector(".current")?.classList.remove("current");
   if (charIndex < target.length) {
     const letter = word.children[charIndex];
     letter.classList.remove("correct", "incorrect");
@@ -595,6 +633,7 @@ function beginTest() {
   const runId = state.testRunId;
   state.sessionPromise = openScoreSession(runId);
   document.body.classList.add("test-running");
+  setTestControlsInert(true);
   layoutWords();
   els.hint.textContent =
     state.mode === "time"
@@ -996,6 +1035,7 @@ function finishTest() {
   els.input.blur();
   document.body.classList.remove("test-running");
   document.body.classList.add("test-finished");
+  setTestControlsInert(false);
   renderResultsChart(speedSamples, elapsedMs);
   els.results.classList.remove("is-leaving");
 }
@@ -1061,7 +1101,7 @@ function handleKeydown(event) {
       finishTest();
       return;
     }
-    renderWords();
+    advanceToNextWord();
     return;
   }
   if (event.key.length !== 1 || event.key < " ") return;
@@ -1151,36 +1191,6 @@ function showToast(message) {
   );
 }
 
-const navMenu = document.querySelector(".nav-menu");
-const navMenuToggle = document.querySelector("#nav-menu-toggle");
-const navMenuItems = document.querySelector("#main-tabs");
-
-function setNavMenuOpen(open) {
-  navMenu.classList.toggle("open", open);
-  navMenuToggle.setAttribute("aria-expanded", String(open));
-  navMenuItems.setAttribute("aria-hidden", String(!open));
-}
-
-navMenuToggle.addEventListener("click", () =>
-  setNavMenuOpen(!navMenu.classList.contains("open")),
-);
-navMenuToggle.addEventListener("keydown", (event) => {
-  if (event.key === "ArrowDown") {
-    event.preventDefault();
-    setNavMenuOpen(true);
-    document.querySelector(".main-tab[aria-selected='true']").focus();
-  }
-});
-document.addEventListener("click", (event) => {
-  if (!navMenu.contains(event.target)) setNavMenuOpen(false);
-});
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && navMenu.classList.contains("open")) {
-    setNavMenuOpen(false);
-    navMenuToggle.focus();
-  }
-});
-
 function activateTab(tabName) {
   document.body.classList.toggle("scores-view", tabName === "scores");
   document.querySelectorAll(".main-tab").forEach((tab) => {
@@ -1191,17 +1201,13 @@ function activateTab(tabName) {
     document.querySelector(`#${tab.getAttribute("aria-controls")}`).hidden =
       !active;
   });
-  document.querySelector("#current-tab-label").textContent =
-    tabName === "scores" ? "Scores" : "Typetest";
   if (tabName === "scores") loadScores();
 }
 
 document.querySelectorAll(".main-tab").forEach((tab) => {
   tab.addEventListener("click", () => {
     activateTab(tab.dataset.tab);
-    setNavMenuOpen(false);
     if (tab.dataset.tab === "test") focusInput();
-    else navMenuToggle.focus();
   });
   tab.addEventListener("keydown", (event) => {
     if (
@@ -1226,33 +1232,30 @@ document.querySelectorAll(".main-tab").forEach((tab) => {
   });
 });
 
-document.querySelectorAll(".mode-button").forEach((button) => {
-  button.addEventListener("click", () => {
-    document.querySelector(".mode-button.active").classList.remove("active");
-    button.classList.add("active");
-    state.mode = button.dataset.mode;
-    els.timeOptions.classList.toggle("hidden", state.mode !== "time");
-    els.wordOptions.classList.toggle("hidden", state.mode !== "words");
-    document.querySelectorAll(".value-button").forEach((option) => {
-      option.classList.toggle(
-        "active",
-        option.closest("#time-options, #word-options") ===
-          (state.mode === "time" ? els.timeOptions : els.wordOptions) &&
-          Number(option.dataset.value) === state.value,
-      );
-    });
-    const activeOption = (
-      state.mode === "time" ? els.timeOptions : els.wordOptions
-    ).querySelector(".value-button.active");
-    if (!activeOption) {
-      const firstOption = (
-        state.mode === "time" ? els.timeOptions : els.wordOptions
-      ).querySelector(".value-button");
-      firstOption.classList.add("active");
-      state.value = Number(firstOption.dataset.value);
-    }
-    resetTest();
+function selectTestMode(mode, value) {
+  const options = mode === "time" ? els.timeOptions : els.wordOptions;
+  state.value =
+    value ??
+    (mode === state.mode
+      ? state.value
+      : Number(options.querySelector(".value-button").dataset.value));
+  state.mode = mode;
+  document.querySelectorAll(".mode-button").forEach((button) => {
+    const active = button.dataset.mode === mode;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
   });
+  document.querySelectorAll(".value-button").forEach((button) => {
+    const active =
+      options.contains(button) && Number(button.dataset.value) === state.value;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  resetTest();
+}
+
+document.querySelectorAll(".mode-button").forEach((button) => {
+  button.addEventListener("click", () => selectTestMode(button.dataset.mode));
 });
 
 els.raceLauncher.addEventListener("click", startTimeRace);
@@ -1262,10 +1265,10 @@ els.raceExit.addEventListener("click", exitTimeRace);
 document.querySelectorAll(".value-button").forEach((button) => {
   button.addEventListener("click", () => {
     const group = button.closest("#time-options, #word-options");
-    group.querySelector(".value-button.active").classList.remove("active");
-    button.classList.add("active");
-    state.value = Number(button.dataset.value);
-    resetTest();
+    selectTestMode(
+      group === els.timeOptions ? "time" : "words",
+      Number(button.dataset.value),
+    );
   });
 });
 
@@ -1361,6 +1364,51 @@ document.documentElement.style.setProperty(
   fontFamilies[els.fontSelect.value],
 );
 els.fontSelect.addEventListener("change", () => setFont(els.fontSelect.value));
+
+const savedTheme = localStorage.getItem("cursorxgrid-theme");
+if ([...els.themeSelect.options].some((option) => option.value === savedTheme)) {
+  els.themeSelect.value = savedTheme;
+}
+document.documentElement.dataset.theme = els.themeSelect.value;
+let themeChangeVersion = 0;
+let themeTransition = null;
+els.themeSelect.addEventListener("change", () => {
+  const theme = els.themeSelect.value;
+  const version = ++themeChangeVersion;
+  const applyTheme = () => {
+    if (version !== themeChangeVersion) return;
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem("cursorxgrid-theme", theme);
+  };
+  if (
+    typeof document.startViewTransition !== "function" ||
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ) {
+    if (themeTransition) themeTransition.skipTransition();
+    themeTransition = null;
+    document.documentElement.classList.remove("theme-changing");
+    applyTheme();
+    return;
+  }
+
+  document.documentElement.classList.add("theme-changing");
+  const transition = document.startViewTransition(applyTheme);
+  themeTransition = transition;
+  transition.ready.catch((error) => {
+    if (error.name !== "AbortError") {
+      console.error("Thema-overgang kon niet starten:", error);
+    }
+  });
+  const finishTransition = () => {
+    if (themeTransition !== transition) return;
+    themeTransition = null;
+    document.documentElement.classList.remove("theme-changing");
+  };
+  transition.finished.then(finishTransition, (error) => {
+    finishTransition();
+    console.error("Thema-overgang mislukt:", error);
+  });
+});
 
 let restartArmed = false;
 let restartTimeout = null;

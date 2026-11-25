@@ -5,7 +5,7 @@ verschillende testmodi, Time Race en een scoreoverzicht.
 
 ## Downloaden en installeren
 
-- [Download de Windows-installer voor versie 1.0.5](https://github.com/donritzt/CursorXGrid/releases/download/v1.0.5/CursorXGrid-Setup-1.0.5-x64.exe).
+- [Download de Windows-installer voor versie 1.1.0](https://github.com/donritzt/CursorXGrid/releases/download/v1.1.0/CursorXGrid-Setup-1.1.0-x64.exe).
 - [Bekijk de nieuwste versie op GitHub](https://github.com/donritzt/CursorXGrid/releases/latest).
 
 De app heeft een nieuwe Windows-identiteit en wordt naast bestaande installaties
@@ -142,6 +142,9 @@ Supabase-sleutels in de installer of repository.
 
 - Kies een tijdsduur of aantal woorden, de taal en de moeilijkheid **Normaal**
   of **1k**. Iedere test gebruikt een geschudde woordenlijst.
+- Tijdens het typen verdwijnen de instellingen voor een rustige focusweergave.
+  De resterende tijd of woordvoortgang en live WPM blijven subtiel zichtbaar;
+  na afloop verschijnt de uitslag.
 - De uitslag toont WPM, raw WPM, nauwkeurigheid, fouten, consistentie en een
   snelheidsgrafiek. Een gecorrigeerd fout teken telt als een halve fout mee
   voor nauwkeurigheid en foutentotaal.
@@ -149,13 +152,16 @@ Supabase-sleutels in de installer of repository.
   **Opnieuw typen** voor een nieuwe tekst. Bij een herhaling toont een
   schaduw je snelste eerdere voortgang.
 - Met **Tab** gevolgd door **Enter** binnen 1,5 seconde herstart je de test.
-  Het lettertype stel je rechts onderaan in; de keuze wordt onthouden en de
-  app gebruikt lokale systeemfonts.
+  Onderaan kies je het lettertype en een van de elf kleurthema's. Regular
+  gebruikt een neutrale antracietachtergrond; bij de andere thema's past de
+  achtergrond zich aan de accentkleur aan. Beide voorkeuren worden op het
+  apparaat onthouden. De app gebruikt lokale systeemfonts.
 - Via **Time Race** start je met 10 seconden. Een correct woord gevolgd door
   spatie of Enter levert een punt op; bonuswoorden voegen 3 seconden toe.
   Time Race wordt niet op het normale scorebord opgeslagen.
 - Na een normale test kun je je naam en score opslaan als de score-server
-  beschikbaar is. Bekijk het scorebord via **Scores**.
+  beschikbaar is. Bekijk het scorebord via het agenda-icoon **Scores** en
+  keer met het logo terug naar de typetest.
 
 Tijdens een test zijn kopiëren, knippen, plakken en slepen geblokkeerd. Als
 het testvenster de focus verliest, wordt de test opnieuw ingesteld.
