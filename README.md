@@ -5,7 +5,7 @@ verschillende testmodi, Time Race en een scoreoverzicht.
 
 ## Downloaden en installeren
 
-- [Download de Windows-installer voor versie 1.0.4](https://github.com/donritzt/CursorXGrid/releases/download/v1.0.4/CursorXGrid-Setup-1.0.4-x64.exe).
+- [Download de Windows-installer voor versie 1.0.5](https://github.com/donritzt/CursorXGrid/releases/download/v1.0.5/CursorXGrid-Setup-1.0.5-x64.exe).
 - [Bekijk de nieuwste versie op GitHub](https://github.com/donritzt/CursorXGrid/releases/latest).
 
 De app heeft een nieuwe Windows-identiteit en wordt naast bestaande installaties
